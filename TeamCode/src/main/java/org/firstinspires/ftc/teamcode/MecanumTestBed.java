@@ -76,7 +76,7 @@ public class MecanumTestBed extends OpMode {
         m2.setDirection(DcMotor.Direction.REVERSE);
         m4.setDirection(DcMotor.Direction.REVERSE);
 
-        m5.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //m5.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 /*
         modernRoboticsI2cGyro = hardwareMap.get(ModernRoboticsI2cGyro.class, "gyro");
         gyro = (IntegratingGyroscope) modernRoboticsI2cGyro;
@@ -140,7 +140,8 @@ public class MecanumTestBed extends OpMode {
 
         encoderCurrent = m5.getCurrentPosition();
 
-        telemetry.addData("m5 curr position: ",encoderCurrent + "\nencoderDifference: " + encoderDifference + "\nencoderTarget: " + encoderTarget);
+        telemetry.addData("m5 curr position: ",encoderCurrent + "\nencoderDifference: " + encoderDifference
+                + "\nencoderTarget: " + encoderTarget + "\npower: " + power);
 
         float LUD = gamepad1.left_stick_y; //Variable for left stick y axis
         float LRL = -gamepad1.left_stick_x; //Variable for left stick x axis
@@ -174,15 +175,18 @@ public class MecanumTestBed extends OpMode {
             m6.setPower(0);
         }
 
-        if (gamepad2.left_stick_y < .3) {
-            encoderTarget = encoderTarget + 5;
+/*        if (gamepad2.left_stick_y > .3) {
+            encoderTarget = encoderTarget + 50;
         }
-        if (gamepad2.left_stick_y > .3) {
-            encoderTarget = encoderTarget - 5;
+        else if (gamepad2.left_stick_y < -.3) {
+            encoderTarget = encoderTarget - 50;
         }
+*/
+        encoderTarget = encoderTarget - (gamepad2.left_stick_y * 5);
 
         encoderDifference = encoderCurrent - encoderTarget;
-        power = ((Math.pow(encoderDifference, 3) * -.0000015) + (-.007 * encoderDifference)) / 2;
+        power = ((Math.pow(encoderDifference, 3) * -.0000001) + (-.001 * encoderDifference)) / 2;
+//        power = Math.pow(encoderDifference, 3) * -.00000001;
 
         m5.setPower(power);
 
@@ -222,12 +226,12 @@ public class MecanumTestBed extends OpMode {
         if (gamepad1.right_trigger == 0) { //Controls for normal mode
 
 //            if (RLR == 0) {
-                m1.setPower(((LRL + LUD) / 8) + (RLR / 6) - turn); //Steering for top left
+
+                m1.setPower(((LRL + LUD) / 8) - (RLR / 6) - turn); //Turning for topm1.setPower(((LRL + LUD) / 8) + (RLR / 6) - turn); //Steering for top left
                 m2.setPower(((LUD - LRL) / 8) - (RLR / 6) + turn); //Steering for top right
                 m3.setPower(((LUD - LRL) / 8) + (RLR / 6) - turn); //Steering for back left
                 m4.setPower(((LRL + LUD) / 8) - (RLR / 6) + turn); //Steering for back right
-/*            } else {
-                m1.setPower(RLR); //Turning for top left motor
+/*            } else { left motor
                 m2.setPower(-RLR); //Turning for top right motor
                 m3.setPower(RLR); //Turning for back left motor
                 m4.setPower(-RLR); //Turning for back right motor
