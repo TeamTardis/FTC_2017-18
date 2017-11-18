@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -15,7 +16,29 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Created by dobbinsms on 11/14/2017.
  */
 
-public abstract class BaseIO_TardisRelicRecovery extends OpMode {
+public abstract class BaseIO_Autonomous extends LinearOpMode {
+
+    public enum steps { //All steps for completing autonomous
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //Main steps - These steps run in sequence when the program is going perfect with no unexpected readings in sensor inputs.//
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        STARTCAMERA,
+        SCANIMAGE,
+        LOWERSERVO,
+        SENSECOLOR,
+        KNOCKFORWARDS,
+        KNOCKBACK,
+        RAISESERVO,
+        DRIVETOCRYPTOBOX,
+        ROTATE,
+        LEFTCOLUMN,
+        CENTERCLOMUN,
+        RIGHTCOLUMN,
+        STOP //[Stop] The title says it all.
+
+    } //End of steps for autonomous
 
     /**
      * Front Left Motor, gearbox 40
@@ -82,7 +105,7 @@ public abstract class BaseIO_TardisRelicRecovery extends OpMode {
      */
     ElapsedTime runtime;
 
-    public BaseIO_TardisRelicRecovery()
+    public BaseIO_Autonomous()
     {
 
         m1 = hardwareMap.dcMotor.get("m1"); //Sets m1 to m1 in the config
@@ -98,9 +121,6 @@ public abstract class BaseIO_TardisRelicRecovery extends OpMode {
         s4 = hardwareMap.servo.get("s4"); //Sets s4 in the config
         s5 = hardwareMap.servo.get("s5"); //Sets s5 in the config
         s6 = hardwareMap.servo.get("s6"); //Sets s6 in the config
-
-        m2.setDirection(DcMotor.Direction.REVERSE); //Sets m2 direction to REVERSE
-        m4.setDirection(DcMotor.Direction.REVERSE); //Sets m4 direction to REVERSE
 
         runtime = new ElapsedTime(); //Creates runtime variable for using time
 
