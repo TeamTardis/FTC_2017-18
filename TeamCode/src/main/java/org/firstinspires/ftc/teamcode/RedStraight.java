@@ -23,21 +23,12 @@ import static org.firstinspires.ftc.teamcode.AutoSteps.steps.KNOCKFORWARDS;
 
 @Autonomous(name="RedStraight", group ="Teleop")
 
-public class RedStraight extends AutoSteps {
+public class RedStraight extends BaseIO_Autonomous {
 
     public static final String TAG = "RedStraight";
 
-    VuforiaLocalizer vuforia;
 
-    DcMotor m1; //Define dcMotor as m1
-    DcMotor m2; //Define dcMotor as m2
-    DcMotor m3; //Define dcMotor as m3
-    DcMotor m4; //Define dcMotor as m4
-    DcMotor m5; //Define dcMotor as m5
-    Servo s1; //Color sensor arm servo
-    Servo s2; //Claw grip servo
-    Servo s3; //Wrist rotation
-//    Servo s4; //Claw vertical
+    VuforiaLocalizer vuforia;
 
     IntegratingGyroscope gyro;
     ModernRoboticsI2cGyro modernRoboticsI2cGyro;
@@ -51,6 +42,8 @@ public class RedStraight extends AutoSteps {
 
     I2cDeviceSynch r3reader;
     ModernRoboticsI2cRangeSensor r3;
+
+
 
     @Override
     public void runOpMode() {
@@ -209,7 +202,7 @@ public class RedStraight extends AutoSteps {
                     }
 
                     if(c1.blue() > 10 && runtime.seconds() > 1) {
-                        CURRENT_STEP = KNOCKFORWARDS;
+                        CURRENT_STEP = steps.KNOCKFORWARDS;
                         runtime.reset();
                         break; //Exits switch statement
                     }

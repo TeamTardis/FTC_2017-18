@@ -1,49 +1,57 @@
 package org.firstinspires.ftc.teamcode;
-/**
- * Created by Corning Robotics on 9/25/16.
- */
+
+import com.qualcomm.robotcore.hardware.HardwareMap.DeviceMapping;
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.I2cAddr;
+import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
+import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import static com.sun.tools.javac.util.Constants.format;
 //Imports
 
 @TeleOp(name="TeleOp2018", group="TeleOp")
-public class TeleOp2018 extends BaseIO_TardisRelicRecovery {
+public class TeleOp2018 extends OpMode {
+    DcMotor m1;
+    DcMotor m2;
+    DcMotor m3;
+    DcMotor m4;
+    DcMotor m5;
+    DcMotor m6;
 
-    //Declare variables globally
-/*    DcMotor m1; //Define dcMotor as m1
-    DcMotor m2; //Define dcMotor as m2
-    DcMotor m3; //Define dcMotor as m3
-    DcMotor m4; //Define dcMotor as m4
-    DcMotor m5; //Define dcMotor as m4
-    DcMotor m6; //Define dcMotor as m4
     Servo s1; //Color sensor arm servo
     Servo s2; //Claw grip servo
     Servo s3; //Wrist rotation
     Servo s4; //Claw vertical
     Servo s5; //Second claw grip
     Servo s6; //Arm extension
-*/
 
-/*
     IntegratingGyroscope gyro;
     ModernRoboticsI2cGyro modernRoboticsI2cGyro;
     ColorSensor c1;
-    I2cDeviceSynch r2reader;
-    ModernRoboticsI2cRangeSensor r2;
 
     I2cDeviceSynch r1reader;
     ModernRoboticsI2cRangeSensor r1;
 
+    I2cDeviceSynch r2reader;
+    ModernRoboticsI2cRangeSensor r2;
+
     I2cDeviceSynch r3reader;
     ModernRoboticsI2cRangeSensor r3;
-*/
+
+    I2cDeviceSynch r4reader;
+    ModernRoboticsI2cRangeSensor r4;
+
+    ElapsedTime runtime;
+
     public void init() { //Start of the initiation for autonomous
 
-/*        m1 = hardwareMap.dcMotor.get("m1"); //Sets m1 to m1 in the config
+        m1 = hardwareMap.dcMotor.get("m1"); //Sets m1 to m1 in the config
         m2 = hardwareMap.dcMotor.get("m2"); //Sets m2 to m2 in the config
         m3 = hardwareMap.dcMotor.get("m3"); //Sets m3 to m3 in the config
         m4 = hardwareMap.dcMotor.get("m4"); //Sets m4 to m4 in the config
@@ -59,8 +67,8 @@ public class TeleOp2018 extends BaseIO_TardisRelicRecovery {
 
         m2.setDirection(DcMotor.Direction.REVERSE); //Sets m2 direction to REVERSE
         m4.setDirection(DcMotor.Direction.REVERSE); //Sets m4 direction to REVERSE
-*/
-        //m5.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        runtime = new ElapsedTime(); //Creates runtime variable for using time
 /*
         modernRoboticsI2cGyro = hardwareMap.get(ModernRoboticsI2cGyro.class, "gyro");
         gyro = (IntegratingGyroscope) modernRoboticsI2cGyro;
@@ -82,19 +90,26 @@ public class TeleOp2018 extends BaseIO_TardisRelicRecovery {
 
         r2reader = hardwareMap.i2cDeviceSynch.get("r2");
         r2 = new ModernRoboticsI2cRangeSensor(r2reader);
-        r2.setI2cAddress(I2cAddr.create8bit(0x28));
+        r2.setI2cAddress(I2cAddr.create8bit(0x2c));
 
         r3reader = hardwareMap.i2cDeviceSynch.get("r3");
         r3 = new ModernRoboticsI2cRangeSensor(r2reader);
-        r3.setI2cAddress(I2cAddr.create8bit(0x2c));
- */
+        r3.setI2cAddress(I2cAddr.create8bit(0x26));
+
+        r3reader = hardwareMap.i2cDeviceSynch.get("r4");
+        r3 = new ModernRoboticsI2cRangeSensor(r2reader);
+        r3.setI2cAddress(I2cAddr.create8bit(0x28));
+
+    */
+
+        s1.setPosition(0);
     } //Ends initiation
 
 
     float straight = 0; //Variable for straight motion
     double turn = 0; //Variable for turn
 
-    double wristPosition = .45; //Variable for wristPosition
+    double wristPosition = 0; //Variable for wristPosition
     double power; //Variable for arm power
     float encoderCurrent; //Variable for current encoder value
     double encoderDifference;//Variable for encoder difference
@@ -134,25 +149,25 @@ public class TeleOp2018 extends BaseIO_TardisRelicRecovery {
 
         //Controls for 1st claw (Controller 2)
         if (gamepad2.right_trigger != 0) { //If right trigger is pressed, close claw
-            s2.setPosition(0.8); //Sets servo position to 0.8
+            s2.setPosition(0); //Sets servo position to 0.8
         } else { //If not pressed, open claw
             s2.setPosition(1); //Sets servo position to 1
         }
 
         //Controls for 2nd claw (Controller 2)
         if (gamepad2.left_trigger != 0) { //If left trigger is pressed, close claw
-            s5.setPosition(0); //Sets servo position to 0
+            s5.setPosition(1); //Sets servo position to 0
         } else { //In not pressed, open claw
             s5.setPosition(1); //Sets servo position to 1
         }
 
         //Controls for vertical wrist movement (Controller 2)
         if (gamepad2.x) { //If button x is pressed, extend wrist
-            s4.setPosition(0); //Sets servo position to 0
+            s4.setPosition(1); //Sets servo position to 0
         } else if (gamepad2.y) { //If button y is pressed, retract wrist
-            s4.setPosition(1); //Sets servo position to 1
+            s4.setPosition(0); //Sets servo position to 1
         } else { //If neither is pressed, hold at current position
-            s4.setPosition(0.5); //Sets servo position to 0.5
+            s4.setPosition(0.52); //Sets servo position to 0.5
         }
 
         //Controls for rotating arm base (Controller 2)
@@ -177,7 +192,7 @@ public class TeleOp2018 extends BaseIO_TardisRelicRecovery {
 */
         //Controls for arm raise motor (controller 2)
         if (gamepad2.left_stick_y < .1 || gamepad2.left_stick_y > .1) { //If the y axis of left stick is pressed, raise arm
-            m5.setPower(gamepad2.left_stick_y); //Sets motor power to joystick speed
+            m5.setPower(-gamepad2.left_stick_y); //Sets motor power to joystick speed
         } else { //If the y axis of left stick is not pressed, hold at current position
             m5.setPower(0); //Sets motor power to 0
         }
@@ -224,10 +239,10 @@ public class TeleOp2018 extends BaseIO_TardisRelicRecovery {
 
 //            if (RLR == 0) {
 
-                m1.setPower(((LRL + LUD) / 4) + (RLR / 6) - turn); //Turning for topm1.setPower(((LRL + LUD) / 8) + (RLR / 6) - turn); //Steering for top left
-                m2.setPower(((LUD - LRL) / 4) - (RLR / 6) + turn); //Steering for top right
-                m3.setPower(((LUD - LRL) / 4) + (RLR / 6) - turn); //Steering for back left
-                m4.setPower(((LRL + LUD) / 4) - (RLR / 6) + turn); //Steering for back right
+                m1.setPower(((LRL + LUD) / 3) + (RLR / 6) - turn); //Steering for top left
+                m2.setPower(((LUD - LRL) / 3) - (RLR / 6) + turn); //Steering for top right
+                m3.setPower(((LUD - LRL) / 3) + (RLR / 6) - turn); //Steering for back left
+                m4.setPower(((LRL + LUD) / 3) - (RLR / 6) + turn); //Steering for back right
 /*            } else { left motor
                 m2.setPower(-RLR); //Turning for top right motor
                 m3.setPower(RLR); //Turning for back left motor
@@ -268,10 +283,10 @@ public class TeleOp2018 extends BaseIO_TardisRelicRecovery {
         } else { //Controls for slow mode
 
 //            if (RLR == 0) {
-                m1.setPower(((LRL + LUD) / 2) + RLR - turn); //Steering for top left
-                m2.setPower(((LUD - LRL) / 2) - RLR + turn); //Steering for top right
-                m3.setPower(((LUD - LRL) / 2) + RLR - turn); //Steering for back left
-                m4.setPower(((LRL + LUD) / 2) - RLR + turn); //Steering for back right
+                m1.setPower(((LRL + LUD) / 2) + (RLR / 2) - turn); //Steering for top left
+                m2.setPower(((LUD - LRL) / 2) - (RLR / 2) + turn); //Steering for top right
+                m3.setPower(((LUD - LRL) / 2) + (RLR / 2) - turn); //Steering for back left
+                m4.setPower(((LRL + LUD) / 2) - (RLR / 2) + turn); //Steering for back right
 /*            } else {
                 m1.setPower(RLR / 4); //Turning for top left motor
                 m2.setPower(-RLR / 4); //Turning for top right motor

@@ -3,8 +3,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.I2cAddr;
@@ -12,6 +10,9 @@ import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+
 /**
  * Created by dobbinsms on 11/14/2017.
  */
@@ -105,6 +106,24 @@ public abstract class BaseIO_Autonomous extends LinearOpMode {
      */
     ElapsedTime runtime;
 
+    VuforiaLocalizer vuforia;
+
+    IntegratingGyroscope gyro;
+    ModernRoboticsI2cGyro modernRoboticsI2cGyro;
+    ColorSensor c1;
+
+    I2cDeviceSynch r1reader;
+    ModernRoboticsI2cRangeSensor r1;
+
+    I2cDeviceSynch r2reader;
+    ModernRoboticsI2cRangeSensor r2;
+
+    I2cDeviceSynch r3reader;
+    ModernRoboticsI2cRangeSensor r3;
+
+    I2cDeviceSynch r4reader;
+    ModernRoboticsI2cRangeSensor r4;
+
     public BaseIO_Autonomous()
     {
 
@@ -121,6 +140,32 @@ public abstract class BaseIO_Autonomous extends LinearOpMode {
         s4 = hardwareMap.servo.get("s4"); //Sets s4 in the config
         s5 = hardwareMap.servo.get("s5"); //Sets s5 in the config
         s6 = hardwareMap.servo.get("s6"); //Sets s6 in the config
+
+        m1.setDirection(DcMotor.Direction.REVERSE);
+        m3.setDirection(DcMotor.Direction.REVERSE);
+
+        modernRoboticsI2cGyro = hardwareMap.get(ModernRoboticsI2cGyro.class, "gyro");
+        gyro = (IntegratingGyroscope)modernRoboticsI2cGyro;
+
+        c1 = hardwareMap.colorSensor.get("c1"); //Sets colorSensor to c1 in the config, Port 5
+        c1.enableLed(true); //Turns Color Sensor LED off
+
+
+        r1reader = hardwareMap.i2cDeviceSynch.get("r1"); //Port 1 (Right side)
+        r1 = new ModernRoboticsI2cRangeSensor(r1reader);
+        r1.setI2cAddress(I2cAddr.create8bit(0x2a));
+
+        r2reader = hardwareMap.i2cDeviceSynch.get("r2"); //Port 2 (Front side)
+        r2 = new ModernRoboticsI2cRangeSensor(r2reader);
+        r2.setI2cAddress(I2cAddr.create8bit(0x2c));
+
+        r3reader = hardwareMap.i2cDeviceSynch.get("r3"); //Port 3 (Left side)
+        r3 = new ModernRoboticsI2cRangeSensor(r3reader);
+        r3.setI2cAddress(I2cAddr.create8bit(0x26));
+
+        r4reader = hardwareMap.i2cDeviceSynch.get("r4"); //Port 4 (Back side)
+        r4 = new ModernRoboticsI2cRangeSensor(r4reader);
+        r4.setI2cAddress(I2cAddr.create8bit(0x28));
 
         runtime = new ElapsedTime(); //Creates runtime variable for using time
 

@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode;
  */
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -27,10 +28,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+
 import static com.sun.tools.javac.util.Constants.format;
 //Imports
 
-@TeleOp(name="TestBed2018", group="TeleOp")
+@TeleOp(name="TestBed", group="TeleOp")
+@Disabled
 public class TestBed2018 extends OpMode {
     DcMotor m1; //Define dcMotor as m1
     DcMotor m2; //Define dcMotor as m2
@@ -58,62 +63,40 @@ public class TestBed2018 extends OpMode {
     } //Ends initiation
 
     double turn = 0;
-    double wristPosition = .45;
     double power;
     float encoderCurrent;
     double encoderDifference;
     float encoderTarget = 0;
+    double wristRotation = 0;
 
     @Override
     public void loop() {
 
         encoderCurrent = m5.getCurrentPosition();
+        wristRotation = -0.000475586557*encoderCurrent;
 
-        telemetry.addData("m5 curr position: ",encoderCurrent + "\nencoderDifference: " + encoderDifference
-                + "\nencoderTarget: " + encoderTarget + "\npower: " + power);
+        telemetry.addData("m5 curr position: ",encoderCurrent + "\ns2 curr position1: " + wristRotation);
 
-        float LUD = gamepad1.left_stick_y; //Variable for left stick y axis
-        float LRL = -gamepad1.left_stick_x; //Variable for left stick x axis
+        float LUD = -gamepad1.left_stick_y; //Variable for left stick y axis
+        float LRL = gamepad1.left_stick_x; //Variable for left stick x axis
         float RUD = gamepad1.right_stick_y; //Variable for right stick y axis
         float RLR = -gamepad1.right_stick_x; //Variable for right stick x axis
 
         if (gamepad2.right_trigger != 0) {
-            s1.setPosition(0.8); //Set servo position to 0.8
+            s1.setPosition(0); //Set servo position to 0.8
         } else {
             s1.setPosition(1); //Set servo position to 1
         }
 
-        if (encoderTarget >= -1500 && encoderTarget <= 1500) {
-            encoderTarget = encoderTarget - (gamepad2.left_stick_y * 20);
-        }
-
-        if (encoderTarget <= -1500 && gamepad2.left_stick_y < 0) {
-            encoderTarget = encoderTarget - (gamepad2.left_stick_y * 20);
-        }
-
-        if (encoderTarget >= 1500 && gamepad2.left_stick_y > 0) {
-            encoderTarget = encoderTarget - (gamepad2.left_stick_y * 20);
-        }
-
         if (gamepad2.left_stick_y < .1) {
-            m5.setPower(gamepad2.left_stick_y / 2);
+            m5.setPower(gamepad2.left_stick_y / 6);
         } else if (gamepad2.left_stick_y > .1) {
             m5.setPower(gamepad2.left_stick_y / 2);
         } else {
             m5.setPower(0);
         }
 
-        encoderDifference = encoderCurrent - encoderTarget;
-        power = ((Math.pow(encoderDifference, 3) * -.0000000015) + (-.00002 * encoderDifference)) / 2;
-
-        if (gamepad2.a) {
-            wristPosition += .01; //Adds .01 to variable wristPosition
-        }
-        if (gamepad2.b) {
-            wristPosition -= .01; //Subtracts .01 to variable wristPosition
-        }
-
-        s2.setPosition(wristPosition); //Sets servo to variable wristPosition
+        s2.setPosition(wristRotation);
 
         if (gamepad1.right_trigger == 0) { //Controls for slow mode
 
@@ -132,4 +115,3 @@ public class TestBed2018 extends OpMode {
         }
     }
 }
-

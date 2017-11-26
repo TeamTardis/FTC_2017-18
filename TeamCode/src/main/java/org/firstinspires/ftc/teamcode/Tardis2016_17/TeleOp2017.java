@@ -2,12 +2,14 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp(name = "TeleOp-2017", group = "TeleOp")
+@Disabled
 public class TeleOp2017 extends org.firstinspires.ftc.teamcode.TardisOpModeAutonomous { //Init code in separate program
 
     public enum steps {

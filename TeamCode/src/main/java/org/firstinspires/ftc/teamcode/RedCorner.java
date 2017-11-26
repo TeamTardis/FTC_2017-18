@@ -33,22 +33,13 @@ import static org.firstinspires.ftc.teamcode.AutoSteps.steps.KNOCKFORWARDS;
 //Imports
 
 @Autonomous(name="RedCorner", group ="Teleop")
+@Disabled
 
-public class RedCorner extends AutoSteps {
+public class RedCorner extends BaseIO_Autonomous {
 
     public static final String TAG = "RedCorner";
 
     VuforiaLocalizer vuforia;
-
-    DcMotor m1; //Define dcMotor as m1
-    DcMotor m2; //Define dcMotor as m2
-    DcMotor m3; //Define dcMotor as m3
-    DcMotor m4; //Define dcMotor as m4
-    DcMotor m5; //Define dcMotor as m5
-    Servo s1; //Color sensor arm servo
-    Servo s2; //Claw grip servo
-    Servo s3; //Wrist rotation
-//    Servo s4; //Claw vertical
 
     IntegratingGyroscope gyro;
     ModernRoboticsI2cGyro modernRoboticsI2cGyro;
@@ -65,20 +56,6 @@ public class RedCorner extends AutoSteps {
 
     @Override
     public void runOpMode() {
-
-        m1 = hardwareMap.dcMotor.get("m1"); //Sets m1 in the config
-        m2 = hardwareMap.dcMotor.get("m2"); //Sets m2 in the config
-        m3 = hardwareMap.dcMotor.get("m3"); //Sets m3 in the config
-        m4 = hardwareMap.dcMotor.get("m4"); //Sets m4 in the config
-        m5 = hardwareMap.dcMotor.get("m5"); //Sets m4 in the config
-
-        s1 = hardwareMap.servo.get("s1"); //Sets s1 i the config
-        s2 = hardwareMap.servo.get("s2"); //Sets s1 i the config
-        s3 = hardwareMap.servo.get("s3"); //Sets s1 i the config
-//        s4 = hardwareMap.servo.get("s4"); //Sets s1 i the config
-
-        m1.setDirection(DcMotor.Direction.REVERSE);
-        m3.setDirection(DcMotor.Direction.REVERSE);
 
 
         s1.setPosition(0);
@@ -219,7 +196,7 @@ public class RedCorner extends AutoSteps {
                     }
 
                     if(c1.blue() > 10 && runtime.seconds() > 1) {
-                        CURRENT_STEP = KNOCKFORWARDS;
+                        CURRENT_STEP = steps.KNOCKFORWARDS;
                         runtime.reset();
                         break; //Exits switch statement
                     }
