@@ -30,6 +30,10 @@ public class AutoSteps extends LinearOpMode {
         BACK,
         FORWARD2,
         BACK2,
+        FORWARD3,
+        BACK3,
+        FORWARD4,
+        BACK4,
         STOP //[Stop] The title says it all.
 
     } //End of steps for autonomous

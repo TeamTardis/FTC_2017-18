@@ -35,7 +35,7 @@ import static com.sun.tools.javac.util.Constants.format;
 //Imports
 
 @TeleOp(name="TestBed", group="TeleOp")
-@Disabled
+//@Disabled
 public class TestBed2018 extends OpMode {
     DcMotor m1; //Define dcMotor as m1
     DcMotor m2; //Define dcMotor as m2
@@ -77,21 +77,21 @@ public class TestBed2018 extends OpMode {
 
         telemetry.addData("m5 curr position: ",encoderCurrent + "\ns2 curr position1: " + wristRotation);
 
-        float LUD = -gamepad1.left_stick_y; //Variable for left stick y axis
-        float LRL = gamepad1.left_stick_x; //Variable for left stick x axis
+        float LUD = gamepad1.left_stick_y; //Variable for left stick y axis
+        float LRL = -gamepad1.left_stick_x; //Variable for left stick x axis
         float RUD = gamepad1.right_stick_y; //Variable for right stick y axis
         float RLR = -gamepad1.right_stick_x; //Variable for right stick x axis
 
-        if (gamepad2.right_trigger != 0) {
-            s1.setPosition(0); //Set servo position to 0.8
+        if (gamepad1.right_trigger != 0) {
+            s1.setPosition(1); //Set servo position to 0.8
         } else {
-            s1.setPosition(1); //Set servo position to 1
+            s1.setPosition(0); //Set servo position to 1
         }
 
-        if (gamepad2.left_stick_y < .1) {
-            m5.setPower(gamepad2.left_stick_y / 6);
-        } else if (gamepad2.left_stick_y > .1) {
-            m5.setPower(gamepad2.left_stick_y / 2);
+        if (gamepad1.a) {
+            m5.setPower(.3);
+        } else if (gamepad1.b) {
+            m5.setPower(-.1);
         } else {
             m5.setPower(0);
         }
