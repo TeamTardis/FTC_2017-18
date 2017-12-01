@@ -215,8 +215,8 @@ public class RedFar extends AutoSteps {
 
         waitForStart();
 
-        boolean checkPosition = false;
-        boolean inPosition = false;
+//        boolean checkPosition = false;
+//        boolean inPosition = false;
 
         double rCM1Prev = r1.getDistance(DistanceUnit.CM); //Defining variable used in low pass filter
         if (rCM1Prev > 255 || rCM1Prev < 0) {
@@ -236,7 +236,7 @@ public class RedFar extends AutoSteps {
             if (rCM1Curr > 255 || rCM1Curr < 0) {
                 rCM1Curr = rCM1Prev;
             }
-            rCM1Curr = r4.getDistance(DistanceUnit.CM); //Defining variable used in low pass filter
+            rCM4Curr = r4.getDistance(DistanceUnit.CM); //Defining variable used in low pass filter
             if (rCM4Curr > 255 || rCM4Curr < 0) {
                 rCM4Curr = rCM4Prev;
             }
@@ -256,7 +256,8 @@ public class RedFar extends AutoSteps {
 
             telemetry.addData("Step", CURRENT_STEP + "\nImage" + image + "\nColorBlue: " + c1.blue()
                     + "\nColorRed: " + c1.red() + "\nRange1: " + rangeCM1 + "\nRange2: " + rangeCM2
-                    + "\nRange3: " + rangeCM3 + "\nRange4: " + rangeCM4 + "\nGyro: " + integratedZ + "\nRuntime: " + runtime.seconds() ); //Adds telemetry to debug
+                    + "\nRange3: " + rangeCM3 + "\nRange4: " + rangeCM4 + "\nGyro: " + integratedZ
+                    + "\nRuntime: " + runtime.seconds() ); //Adds telemetry to debug
             telemetry.update(); //Updates telemetry with new information
 
             /////////////////////////////
@@ -382,7 +383,7 @@ public class RedFar extends AutoSteps {
 
                 case DRIVETOCRYPTOBOX: //Beginning of the case statement
 
-                    if (rangeCM4 < 80) {
+                    if (rangeCM4 < 55) {
                         m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
                         m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
                         m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
@@ -404,6 +405,23 @@ public class RedFar extends AutoSteps {
                         m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
                         m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
                         m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                        runtime.reset();
+                        CURRENT_STEP = steps.BACKUP;
+                    }
+                    m1.setPower(-0.18); //Sets motor 1 power to 0 to make sure it is not moving
+                    m2.setPower(0.18); //Sets motor 2 power to 0 to make sure it is not moving
+                    m3.setPower(-0.18); //Sets motor 3 power to 0 to make sure it is not moving
+                    m4.setPower(0.18); //Sets motor 4 power to 0 to make sure it is not moving
+                    s1.setPosition(0);
+                    break; //Exits switch statement
+
+                case BACKUP:
+
+                    if (runtime.seconds() > 0.3) {
+                        m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
+                        m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
+                        m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
+                        m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
                         if (image == 1) {
                             CURRENT_STEP = steps.LEFTCOLUMN;
                             runtime.reset();
@@ -416,17 +434,16 @@ public class RedFar extends AutoSteps {
                             CURRENT_STEP = steps.RIGHTCOLUMN;
                             runtime.reset();
                         }
-                        break;
+                        break; //Exits switch statement
                     }
-                    m1.setPower(-0.2); //Sets motor 1 power to 0 to make sure it is not moving
-                    m2.setPower(0.2); //Sets motor 2 power to 0 to make sure it is not moving
-                    m3.setPower(-0.2); //Sets motor 3 power to 0 to make sure it is not moving
-                    m4.setPower(0.2); //Sets motor 4 power to 0 to make sure it is not moving
-                    s1.setPosition(0);
-                    break; //Exits switch statement
+                    m1.setPower(-0.1);
+                    m2.setPower(-0.1);
+                    m3.setPower(-0.1);
+                    m4.setPower(-0.1);
+                    break;
 
                 case LEFTCOLUMN: //Beginning of the case statement
-
+                    //Target position: 86
                     speed = (Math.pow(0.9841381234, rangeCM1)) * 0.9637778146;  //Exponential regression equation to decrease speed as we approach target position
 
                     straight = -180; //Sets gyro variable to -180
@@ -467,7 +484,7 @@ public class RedFar extends AutoSteps {
                     break;
 
                 case CENTERCLOMUN: //Beginning of the case statement STOP
-
+                    //Target Position: 70 CM
                     speed = (Math.pow(0.9799308653, rangeCM1)) * .9; //Exponential regression equation to decrease speed as we approach target position
 
                     straight = -180; //Sets gyro variable to -180
@@ -521,17 +538,17 @@ public class RedFar extends AutoSteps {
                         turn = 0; //Sets the turn value to 0
                     } //End of else statement
 
-                    if (runtime.seconds() > 1 && rangeCM1 >= 48 && rangeCM1 <= 50 && integratedZ <= -178
+                    if (runtime.seconds() > 1 && rangeCM1 >= 47.9 && rangeCM1 <= 50.1 && integratedZ <= -178
                             && integratedZ >= -182) { //If checkPosition runtime is past 1 second
                         m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
                         m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
                         m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
                         m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
-                        m6.setPower(0.05); //Sets arm base motor to hold against battery mount, turns left
+                        m6.setPower(0.1); //Sets arm base motor to hold against battery mount, turns left
                         CURRENT_STEP = steps.FORWARD;
                         break;
                     }
-                    else if (rangeCM1 >= 48 && rangeCM1 <= 50) { //If in range
+                    else if (rangeCM1 >= 47.9 && rangeCM1 <= 50.1) { //If in range
 //                        if (checkPosition) { //If check position is true
 //                            runtime.reset();
 //                            checkPosition = false;
@@ -540,25 +557,24 @@ public class RedFar extends AutoSteps {
                             m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
                             m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
                             m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
-                            m6.setPower(0.05); //Sets arm base motor to hold against battery mount, turns left
+                            m6.setPower(0.1); //Sets arm base motor to hold against battery mount, turns left
                             break;
                         } else { //If in range but outside angle
-                            m1.setPower(-turn * 3); //Sets motor 1 power to 0 to make sure it is not moving
-                            m2.setPower(turn * 3); //Sets motor 2 power to 0 to make sure it is not moving
-                            m3.setPower(-turn * 3); //Sets motor 3 power to 0 to make sure it is not moving
-                            m4.setPower(turn * 3); //Sets motor 4 power to 0 to make sure it is not moving
-                            m6.setPower(0.05); //Sets arm base motor to hold against battery mount, turns left
-
-                              runtime.reset();
+                            m1.setPower(-turn * 2); //Sets motor 1 power to 0 to make sure it is not moving
+                            m2.setPower(turn * 2); //Sets motor 2 power to 0 to make sure it is not moving
+                            m3.setPower(-turn * 2); //Sets motor 3 power to 0 to make sure it is not moving
+                            m4.setPower(turn * 2); //Sets motor 4 power to 0 to make sure it is not moving
+                            m6.setPower(0.1); //Sets arm base motor to hold against battery mount, turns left
+                            runtime.reset();
                             break; //Exits switch statement
                         }
                     } else { //If outside range
-                        if (rangeCM1 < 48) { //If too close to wall
+                        if (rangeCM1 < 47.9) { //If too close to wall
                             m1.setPower(-speed - turn); //Sets motor 1 power to 0 to make sure it is not moving
                             m2.setPower(speed + turn); //Sets motor 2 power to 0 to make sure it is not moving
                             m3.setPower(speed - turn); //Sets motor 3 power to 0 to make sure it is not moving
                             m4.setPower(-speed + turn); //Sets motor 4 power to 0 to make sure it is not moving
-                            m6.setPower(0.05); //Sets arm base motor to hold against battery mount, turns left
+                            m6.setPower(0.1); //Sets arm base motor to hold against battery mount, turns left
                             runtime.reset();
                             break; //Exits switch statement
                         } else { //If too far from wall
@@ -566,7 +582,7 @@ public class RedFar extends AutoSteps {
                             m2.setPower(-0.18 + turn); //Sets motor 2 power to 0 to make sure it is not moving
                             m3.setPower(-0.18 - turn); //Sets motor 3 power to 0 to make sure it is not moving
                             m4.setPower(0.18 + turn); //Sets motor 4 power to 0 to make sure it is not moving
-                            m6.setPower(0.05); //Sets arm base motor to hold against battery mount, turns left
+                            m6.setPower(0.1); //Sets arm base motor to hold against battery mount, turns left
                             runtime.reset();
                             break; //Exits switch statement
                         }
@@ -662,5 +678,73 @@ public class RedFar extends AutoSteps {
             }
         }
     }
+
+    public void driveToColumn (double minPosition, double maxPosition){
+/*
+        speed = (Math.pow(0.9852338678, rangeCM1) * 0.4); //Exponential regression equation to decrease speed as we approach target position
+
+        straight = -180; //Sets gyro variable to -180
+
+        if (integratedZ > straight) { //Checks to see if the robot is moving and the value of straight is greater than the value integratedZ
+            turn = .05; //Sets the turn value to .05
+        } else if (integratedZ < straight) { //Checks to see if the robot is moving and the value of straight is less than the value integratedZ
+            turn = -.05; //Sets the turn value to -.05
+        } else { //Default value (robot is not moving)
+            turn = 0; //Sets the turn value to 0
+        } //End of else statement
+
+        if (runtime.seconds() > 1 && rangeCM1 >= 47.9 && rangeCM1 <= 50.1 && integratedZ <= -178
+                && integratedZ >= -182) { //If checkPosition runtime is past 1 second
+            m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
+            m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
+            m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
+            m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+            m6.setPower(0.1); //Sets arm base motor to hold against battery mount, turns left
+            CURRENT_STEP = steps.FORWARD;
+            break;
+        }
+        else if (rangeCM1 >= 47.9 && rangeCM1 <= 50.1) { //If in range
+//                        if (checkPosition) { //If check position is true
+//                            runtime.reset();
+//                            checkPosition = false;
+            if (integratedZ <= -178 && integratedZ >= -182) { //If in range and in angle
+                m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
+                m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
+                m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
+                m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                m6.setPower(0.1); //Sets arm base motor to hold against battery mount, turns left
+                break;
+            } else { //If in range but outside angle
+                m1.setPower(-turn * 2); //Sets motor 1 power to 0 to make sure it is not moving
+                m2.setPower(turn * 2); //Sets motor 2 power to 0 to make sure it is not moving
+                m3.setPower(-turn * 2); //Sets motor 3 power to 0 to make sure it is not moving
+                m4.setPower(turn * 2); //Sets motor 4 power to 0 to make sure it is not moving
+                m6.setPower(0.1); //Sets arm base motor to hold against battery mount, turns left
+                runtime.reset();
+                break; //Exits switch statement
+            }
+        } else { //If outside range
+            if (rangeCM1 < 47.9) { //If too close to wall
+                m1.setPower(-speed - turn); //Sets motor 1 power to 0 to make sure it is not moving
+                m2.setPower(speed + turn); //Sets motor 2 power to 0 to make sure it is not moving
+                m3.setPower(speed - turn); //Sets motor 3 power to 0 to make sure it is not moving
+                m4.setPower(-speed + turn); //Sets motor 4 power to 0 to make sure it is not moving
+                m6.setPower(0.1); //Sets arm base motor to hold against battery mount, turns left
+                runtime.reset();
+                break; //Exits switch statement
+            } else { //If too far from wall
+                m1.setPower(0.18 - turn); //Sets motor 1 power to 0 to make sure it is not moving
+                m2.setPower(-0.18 + turn); //Sets motor 2 power to 0 to make sure it is not moving
+                m3.setPower(-0.18 - turn); //Sets motor 3 power to 0 to make sure it is not moving
+                m4.setPower(0.18 + turn); //Sets motor 4 power to 0 to make sure it is not moving
+                m6.setPower(0.1); //Sets arm base motor to hold against battery mount, turns left
+                runtime.reset();
+                break; //Exits switch statement
+            }
+        }
+        */
+
+    }
+
 }
 

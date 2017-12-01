@@ -22,6 +22,7 @@ public class AutoSteps extends LinearOpMode {
         RAISESERVO,
         DRIVETOCRYPTOBOX,
         ROTATE,
+        BACKUP,
         LEFTCOLUMN,
         CENTERCLOMUN,
         RIGHTCOLUMN,
