@@ -35,7 +35,7 @@ import static com.sun.tools.javac.util.Constants.format;
 //Imports
 
 @TeleOp(name="TestBed", group="TeleOp")
-//@Disabled
+@Disabled
 public class TestBed2018 extends OpMode {
     DcMotor m1; //Define dcMotor as m1
     DcMotor m2; //Define dcMotor as m2

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.I2cAddr;
@@ -22,7 +23,7 @@ import static org.firstinspires.ftc.teamcode.AutoSteps.steps.KNOCKFORWARDS;
 //Imports
 
 @Autonomous(name="BrandonTesting", group ="Autonomous")
-
+@Disabled
 public class BrandonTesting extends BrandonSteps {
 
     public static final String TAG = "BrandonTesting";
