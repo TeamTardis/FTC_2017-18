@@ -11,6 +11,8 @@ import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -21,6 +23,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 //Imports
 
 @Autonomous(name = "BlueFar", group = "Autonomous")
+@Disabled
 public class BlueFar extends AutoSteps {
 
     public static final String TAG = "BlueFar";
@@ -278,13 +281,13 @@ public class BlueFar extends AutoSteps {
 
                 case SENSECOLOR: //Beginning of case statement SENSECOLOR
 
-                    if (c1.blue() > 2 && runtime.seconds() > 1) {
+                    if (c1.blue() > c1.red() && runtime.seconds() > 1) {
                         CURRENT_STEP = steps.KNOCKFORWARDS; //Changes step to KNOCKFORWARDS
                         runtime.reset(); //Resets the runtime
                         break; //Exits switch statement
                     }
 
-                    if (c1.red() > 2 && runtime.seconds() > 1) {
+                    if (c1.red() > c1.blue() && runtime.seconds() > 1) {
                         CURRENT_STEP = steps.KNOCKBACK; //Changes step to KNOCKBACK
                         runtime.reset(); //Resets the runtime
                         break; //Exits switch statement
@@ -365,7 +368,7 @@ public class BlueFar extends AutoSteps {
 
                 case BACKUP: //Beginning of the case statement BACKUP
 
-                    if (runtime.seconds() > 0.6) { //Moves the robot backward for 0.6 seconds
+                    if (rangeCM2 > 30) { //Moves the robot backward for 0.6 seconds
                         m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
                         m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
                         m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
@@ -406,7 +409,7 @@ public class BlueFar extends AutoSteps {
                         turn = 0; //Sets the turn value to 0
                     }
 
-                    if (runtime.seconds() > 1 && rangeCM3 >= 79.9 && rangeCM3 <= 82.1 && integratedZ <= 2
+                    if (runtime.seconds() > 1 && rangeCM3 >= 84.9 && rangeCM3 <= 87.1 && integratedZ <= 2
                             && integratedZ >= -2) { //If in range and runtime is past 1 second
                         m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
                         m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
@@ -414,7 +417,7 @@ public class BlueFar extends AutoSteps {
                         m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
                         CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
                         break; //Exits switch statement
-                    } else if (rangeCM3 >= 79.9 && rangeCM3 <= 82.1) { //If in range
+                    } else if (rangeCM3 >= 84.9 && rangeCM3 <= 87.1) { //If in range
                         if (integratedZ <= 2 && integratedZ >= -2) { //If in range and in angle
                             m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
                             m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
@@ -430,7 +433,7 @@ public class BlueFar extends AutoSteps {
                             break; //Exits switch statement
                         }
                     } else { //If outside range
-                        if (rangeCM3 < 79.9) { //If too close to wall
+                        if (rangeCM3 < 84.9) { //If too close to wall
                             m1.setPower(-speed - turn); //Sets motor 1 power to speed to move right
                             m2.setPower(speed + turn); //Sets motor 2 power to speed to move right
                             m3.setPower(speed - turn); //Sets motor 3 power to speed to move right
@@ -462,7 +465,7 @@ public class BlueFar extends AutoSteps {
                         turn = 0; //Sets the turn value to 0
                     }
 
-                    if (runtime.seconds() > 1 && rangeCM3 >= 64.9 && rangeCM3 <= 67.1 && integratedZ <= 2
+                    if (runtime.seconds() > 1 && rangeCM3 >= 62.9 && rangeCM3 <= 65.1 && integratedZ <= 2
                             && integratedZ >= -2) { //If checkPosition runtime is past 1 second
                         m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
                         m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
@@ -470,7 +473,7 @@ public class BlueFar extends AutoSteps {
                         m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
                         CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
                         break; //Exits switch statement
-                    } else if (rangeCM3 >= 64.9 && rangeCM3 <= 67.1) { //If in range
+                    } else if (rangeCM3 >= 62.9 && rangeCM3 <= 65.1) { //If in range
                         if (integratedZ <= 2 && integratedZ >= -2) { //If in range and in angle
                             m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
                             m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
@@ -486,7 +489,7 @@ public class BlueFar extends AutoSteps {
                             break; //Exits switch statement
                         }
                     } else { //If outside range
-                        if (rangeCM3 < 64.9) { //If too close to wall
+                        if (rangeCM3 < 62.9) { //If too close to wall
                             m1.setPower(-speed - turn); //Sets motor 1 power to speed to move right
                             m2.setPower(speed + turn); //Sets motor 2 power to speed to move right
                             m3.setPower(speed - turn); //Sets motor 3 power to speed to move right
@@ -518,7 +521,7 @@ public class BlueFar extends AutoSteps {
                         turn = 0; //Sets the turn value to 0
                     }
 
-                    if (runtime.seconds() > 1 && rangeCM3 >= 47.9 && rangeCM3 <= 50.1 && integratedZ <= 2
+                    if (runtime.seconds() > 1 && rangeCM3 >= 46.9 && rangeCM3 <= 49.1 && integratedZ <= 2
                             && integratedZ >= -2) { //If checkPosition runtime is past 1 second
                         m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
                         m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
@@ -526,7 +529,7 @@ public class BlueFar extends AutoSteps {
                         m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
                         CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
                         break; //Exits switch statement
-                    } else if (rangeCM3 >= 47.9 && rangeCM3 <= 50.1) { //If in range
+                    } else if (rangeCM3 >= 46.9 && rangeCM3 <= 49.1) { //If in range
                         if (integratedZ <= 2 && integratedZ >= -2) { //If in range and in angle
                             m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
                             m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
@@ -542,7 +545,7 @@ public class BlueFar extends AutoSteps {
                             break; //Exits switch statement
                         }
                     } else { //If outside range
-                        if (rangeCM3 < 47.9) { //If too close to wall
+                        if (rangeCM3 < 46.9) { //If too close to wall
                             m1.setPower(-speed - turn); //Sets motor 1 power to speed to move right
                             m2.setPower(speed + turn); //Sets motor 2 power to speed to move right
                             m3.setPower(speed - turn); //Sets motor 3 power to speed to move right

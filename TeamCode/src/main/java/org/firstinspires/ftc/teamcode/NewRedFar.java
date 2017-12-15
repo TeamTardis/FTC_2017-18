@@ -7,9 +7,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
+
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
+
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
+
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -22,49 +26,74 @@ import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.Servo;
 //Imports
 
-@Autonomous(name = "RedFar", group = "Autonomous")
-@Disabled
-public class RedFar extends AutoSteps {
+@Autonomous(name = "NewRedFar", group = "Autonomous")
+public class NewRedFar extends AutoSteps {
 
-    public static final String TAG = "RedFar";
+    public static final String TAG = "NewRedFar";
 
-    /** Front Left Motor, gearbox 40 */
+    /**
+     * Front Left Motor, gearbox 40
+     */
     DcMotor m1;
 
-    /** Front Right Motor, gearbox 40 */
+    /**
+     * Front Right Motor, gearbox 40
+     */
     DcMotor m2;
 
-    /** Back Right Motor, gearbox 40 */
+    /**
+     * Back Right Motor, gearbox 40
+     */
     DcMotor m3;
 
-    /** Back Left Motor, gearbox 40 */
+    /**
+     * Back Left Motor, gearbox 40
+     */
     DcMotor m4;
 
-    /** Arm Raise Motor, gearbox 60 */
+    /**
+     * Arm Raise Motor, gearbox 60
+     */
     DcMotor m5;
 
-    /** Arm Rotating Base Motor, gearbox 60 */
+    /**
+     * Arm Rotating Base Motor, gearbox 60
+     */
     DcMotor m6;
 
-    /** Jewel Arm Servo, 190 degrees*/
+    /**
+     * Jewel Arm Servo, 190 degrees
+     */
     Servo s1; //Color sensor arm servo
 
-    /** 1st Claw Grip Servo, 190 degrees */
+    /**
+     * 1st Claw Grip Servo, 190 degrees
+     */
     Servo s2; //Claw grip servo
 
-    /** Wrist Rotation Servo, 190 degrees, extended mode */
+    /**
+     * Wrist Rotation Servo, 190 degrees, extended mode
+     */
     Servo s3; //Wrist rotation
 
-    /** Claw Vertical Servo, continuous */
+    /**
+     * Claw Vertical Servo, continuous
+     */
     Servo s4; //Claw vertical
 
-    /** 2nd Claw Grip Servo, 190 degrees */
+    /**
+     * 2nd Claw Grip Servo, 190 degrees
+     */
     Servo s5; //Second claw grip
 
-    /** Arm Extension Servo, continuous */
+    /**
+     * Arm Extension Servo, continuous
+     */
     Servo s6; //Arm extension
 
-    /** Time Variable, use runtime.seconds() */
+    /**
+     * Time Variable, use runtime.seconds()
+     */
     ElapsedTime runtime;
     ElapsedTime checkTime;
 
@@ -86,6 +115,51 @@ public class RedFar extends AutoSteps {
     ModernRoboticsI2cRangeSensor r4;
 
     VuforiaLocalizer vuforia; //Image recognition
+
+    /**
+     * Positive = Forward
+     **/
+    public void setDrivePower(double power) {
+        m1.setPower(power); //Sets motor 1 power to -0.1 to make the robot move backward
+        m2.setPower(power); //Sets motor 2 power to -0.1 to make the robot move backward
+        m3.setPower(power); //Sets motor 3 power to -0.1 to make the robot move backward
+        m4.setPower(power); //Sets motor 4 power to -0.1 to make the robot move backward
+    }
+
+    /**
+     * Positive = Clockwise
+     **/
+    public void setRotationPower(double power) {
+        m1.setPower(power); //Sets motor 1 power to -0.1 to make the robot move backward
+        m2.setPower(-power); //Sets motor 2 power to -0.1 to make the robot move backward
+        m3.setPower(power); //Sets motor 3 power to -0.1 to make the robot move backward
+        m4.setPower(-power); //Sets motor 4 power to -0.1 to make the robot move backward
+    }
+
+    /**
+     * Positive = Right
+     **/
+    public void setStrafePower(double power) {
+        m1.setPower(power); //Sets motor 1 power to -0.1 to make the robot move backward
+        m2.setPower(-power); //Sets motor 2 power to -0.1 to make the robot move backward
+        m3.setPower(-power); //Sets motor 3 power to -0.1 to make the robot move backward
+        m4.setPower(power); //Sets motor 4 power to -0.1 to make the robot move backward
+    }
+
+    double rangeCheckClose = 25;
+    double rangeCheckFar = 35;
+
+    public boolean columnRangeCheckNeeded(double rangeCM2) {
+        return (rangeCM2 <= rangeCheckClose || rangeCM2 >= rangeCheckFar);
+    }
+
+    float leftposition = 85; //Variable for left column positioning
+    float ceterposition = 71; //Variable for center column positioning
+    float rightposition = 52; //Variable for right column positioning
+
+    double lefttolerance = 1.1; //Variable for left column tolerance
+    double centertolerance = 1.1; //Variable for center column tolerance
+    double righttolerance = 1.1; //Variable for right column tolerance
 
     @Override
     public void runOpMode() {
@@ -275,15 +349,15 @@ public class RedFar extends AutoSteps {
                         image = 3;
                         CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                         break; //Exits switch statement
+                    } else if (image == 0 && runtime.seconds() > 3) { //If we don't scan the image
+                        image = 2;
+                        CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                     }
                     break; //Exits switch statement
 
                 case LOWERSERVO: //Beginning of the case statement LOWERSERVO
 
-                    m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                    m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                    m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                    m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                    setDrivePower(0);
 
                     s1.setPosition(0.55); //Sets servo 1 position to 0.55 (lowers jewel arm)
                     runtime.reset(); //Resets the runtime
@@ -304,6 +378,11 @@ public class RedFar extends AutoSteps {
                         break; //Exits switch statement
                     }
 
+                    if (c1.red() == c1.blue() && c1.red() == 0 && runtime.seconds() > 1) {
+                        s1.setPosition(0); //Sets servo 1 position to 0 (raises jewel arm)
+                        CURRENT_STEP = steps.RAISESERVO;
+                    }
+
                     if (runtime.seconds() < .7) { //Activates servo to raise glyph
                         s4.setPosition(1); //Sets servo 4 position to 1 (raises glyph)
                     } else {
@@ -318,42 +397,27 @@ public class RedFar extends AutoSteps {
                 case KNOCKBACK: //Beginning of case statement KNOCKBACK
 
                     if (runtime.seconds() > 0.4) {
-                        m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                        m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                        m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                        m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                        setDrivePower(0);
                         CURRENT_STEP = steps.KNOCKFORWARDS; //Changes step to KNOCKFORWARDS
                         break; //Exits switch statement
                     }
-                    m1.setPower(0.1); //Sets motor 1 power to 0.1 to make the robot move forward
-                    m2.setPower(0.1); //Sets motor 2 power to 0.1 to make the robot move forward
-                    m3.setPower(0.1); //Sets motor 3 power to 0.1 to make the robot move forward
-                    m4.setPower(0.1); //Sets motor 4 power to 0.1 to make the robot move forward
+                    setDrivePower(0.1);
                     s4.setPosition(0.52); //Sets servo 4 position to 0.52 (stops glyph from lifting)
                     break; //Exits switch statement
 
                 case KNOCKFORWARDS: //Beginning of case statement KNOCKFORWARDS
 
                     if (runtime.seconds() > 0.5) {
-                        m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                        m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                        m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                        m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                        setDrivePower(0);
                         CURRENT_STEP = steps.RAISESERVO; //Changes step to RAISESERVO
                         break; //Exits switch statement
                     }
-                    m1.setPower(-0.1); //Sets motor 1 power to -0.1 to make the robot move backward
-                    m2.setPower(-0.1); //Sets motor 2 power to -0.1 to make the robot move backward
-                    m3.setPower(-0.1); //Sets motor 3 power to -0.1 to make the robot move backward
-                    m4.setPower(-0.1); //Sets motor 4 power to -0.1 to make the robot move backward
+                    setDrivePower(-0.1);
                     break; //Exits switch statement
 
                 case RAISESERVO: //Beginning of the case statement RAISESERVO
 
-                    m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                    m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                    m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                    m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                    setDrivePower(0);
                     s1.setPosition(0); //Sets servo 1 position to 0 (raises jewel arm)
                     runtime.reset(); //Resets the runtime
                     CURRENT_STEP = steps.DRIVETOCRYPTOBOX; //Changes step to DRIVETOCRYPTOBOX
@@ -362,44 +426,38 @@ public class RedFar extends AutoSteps {
                 case DRIVETOCRYPTOBOX: //Beginning of the case statement DRIVETOCRYPTOBOX
 
                     if (rangeCM4 < 55) { //Moves backward until wall
-                        m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                        m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                        m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                        m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                        setDrivePower(0);
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.ROTATE; //Changes step to ROTATE
                     }
-                    m1.setPower(-0.1); //Sets motor 1 power to -0.1 to make the robot move backward
-                    m2.setPower(-0.1); //Sets motor 2 power to -0.1 to make the robot move backward
-                    m3.setPower(-0.1); //Sets motor 3 power to -0.1 to make the robot move backward
-                    m4.setPower(-0.1); //Sets motor 4 power to -0.1 to make the robot move backward
+                    setDrivePower(-0.1);
                     s1.setPosition(0); //Sets servo 1 position to 0 (raises jewel arm)
                     break; //Exits switch statement
 
                 case ROTATE: //Beginning of the case statement ROTATE
 
                     if (integratedZ < -140) { //Rotates robot to the left about 140 degrees
-                        m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                        m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                        m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                        m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                        setDrivePower(0);
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.BACKUP; //Changes step to BACKUP
                     }
-                    m1.setPower(-0.18); //Sets motor 1 power to -0.18 to rotate the robot to the left
-                    m2.setPower(0.18); //Sets motor 2 power to 0.18 to rotate the robot to the left
-                    m3.setPower(-0.18); //Sets motor 3 power to -0.18 to rotate the robot to the left
-                    m4.setPower(0.18); //Sets motor 4 power to 0.18 to rotate the robot to the left
+                    setRotationPower(-0.18);
                     s1.setPosition(0); //Sets servo 1 position to 0 (raises jewel arm)
                     break; //Exits switch statement
 
                 case BACKUP: //Beginning of the case statement BACKUP
 
+                    straight = -180; //Sets gyro variable to -180
+
+                    if (integratedZ > straight) { //Checks to see if the robot is moving and the value of straight is greater than the value integratedZ
+                        turn = .05; //Sets the turn value to .05
+                    } else if (integratedZ < straight) { //Checks to see if the robot is moving and the value of straight is less than the value integratedZ
+                        turn = -.05; //Sets the turn value to -.05
+                    } else { //Default value (robot is not moving)
+                        turn = 0; //Sets the turn value to 0
+                    }
                     if (rangeCM2 > 30) { //Moves the robot backward for 0.6 seconds
-                        m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                        m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                        m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                        m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                        setDrivePower(0);
                         if (image == 1) {
                             CURRENT_STEP = steps.LEFTCOLUMN; //Changes step to LEFTCOLUMN
                             runtime.reset(); //Resets the runtime
@@ -414,10 +472,7 @@ public class RedFar extends AutoSteps {
                         }
                         break; //Exits switch statement
                     }
-                    m1.setPower(-0.1); //Sets motor 1 power to -0.1 to make the robot move backward
-                    m2.setPower(-0.1); //Sets motor 2 power to -0.1 to make the robot move backward
-                    m3.setPower(-0.1); //Sets motor 3 power to -0.1 to make the robot move backward
-                    m4.setPower(-0.1); //Sets motor 4 power to -0.1 to make the robot move backward
+                    setDrivePower(-0.1 - turn);
                     break; //Exits switch statement
 
                 case LEFTCOLUMN: //Beginning of the case statement LEFTCOLUMN (Target position: 86 cm)
@@ -435,44 +490,35 @@ public class RedFar extends AutoSteps {
                         turn = 0; //Sets the turn value to 0
                     }
 
-                    if (runtime.seconds() > 1 && rangeCM1 >= 83.9 && rangeCM1 <= 87.1 && integratedZ <= -178
-                            && integratedZ >= -182) { //If in range and runtime is past 1 second
-                        m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                        m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                        m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                        m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
-                        CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
-                        break; //Exits switch statement
-                    } else if (rangeCM1 >= 83.9 && rangeCM1 <= 87.1) { //If in range
-                        if (integratedZ <= -178 && integratedZ >= -182) { //If in range and in angle
-                            m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                            m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                            m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                            m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                    if (columnRangeCheckNeeded(rangeCM2)) {
+                        CURRENT_STEP = steps.POSITIONCHECK;
+                        break;
+                    } else {
+
+                        if (runtime.seconds() > 1 && rangeCM1 >= (leftposition - lefttolerance) && rangeCM1 <= (leftposition + lefttolerance) && integratedZ <= -178
+                                && integratedZ >= -182) { //If in range and runtime is past 1 second
+                            setDrivePower(0);
+                            CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
                             break; //Exits switch statement
-                        } else { //If in range but outside angle
-                            m1.setPower(-turn * 2); //Sets motor 1 power to -turn times 2 to rotate
-                            m2.setPower(turn * 2); //Sets motor 2 power to turn times 2 to rotate
-                            m3.setPower(-turn * 2); //Sets motor 3 power to -turn times 2 to rotate
-                            m4.setPower(turn * 2); //Sets motor 4 power to turn times 2 to rotate
-                            runtime.reset(); //Resets the runtime
-                            break; //Exits switch statement
-                        }
-                    } else { //If outside range
-                        if (rangeCM1 < 83.9) { //If too close to wall
-                            m1.setPower(-speed - turn); //Sets motor 1 power to speed to move left
-                            m2.setPower(speed + turn); //Sets motor 2 power to speed to move left
-                            m3.setPower(speed - turn); //Sets motor 3 power to speed to move left
-                            m4.setPower(-speed + turn); //Sets motor 4 power to speed to move left
-                            runtime.reset(); //Resets the runtime
-                            break; //Exits switch statement
-                        } else { //If too far from wall
-                            m1.setPower(0.18 - turn); //Sets motor 1 power to 0.18 to move right
-                            m2.setPower(-0.18 + turn); //Sets motor 2 power to -0.18 to move right
-                            m3.setPower(-0.18 - turn); //Sets motor 3 power to -0.18 to move right
-                            m4.setPower(0.18 + turn); //Sets motor 4 power to 0.18 to move right
-                            runtime.reset(); //Resets the runtime
-                            break; //Exits switch statement
+                        } else if (rangeCM1 >= (leftposition - lefttolerance) && rangeCM1 <= (leftposition + lefttolerance)) { //If in range
+                            if (integratedZ <= -178 && integratedZ >= -182) { //If in range and in angle
+                                setDrivePower(0);
+                                break; //Exits switch statement
+                            } else { //If in range but outside angle
+                                setRotationPower(-turn * 2);
+                                runtime.reset(); //Resets the runtime
+                                break; //Exits switch statement
+                            }
+                        } else { //If outside range
+                            if (rangeCM1 < (leftposition - lefttolerance)) { //If too close to wall
+                                setStrafePower(-speed - turn);
+                                runtime.reset(); //Resets the runtime
+                                break; //Exits switch statement
+                            } else { //If too far from wall
+                                setStrafePower(0.18 - turn);
+                                runtime.reset(); //Resets the runtime
+                                break; //Exits switch statement
+                            }
                         }
                     }
 
@@ -491,44 +537,35 @@ public class RedFar extends AutoSteps {
                         turn = 0; //Sets the turn value to 0
                     }
 
-                    if (runtime.seconds() > 1 && rangeCM1 >= 68.9 && rangeCM1 <= 72.1 && integratedZ <= -178
-                            && integratedZ >= -182) { //If checkPosition runtime is past 1 second
-                        m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                        m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                        m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                        m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
-                        CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
-                        break; //Exits switch statement
-                    } else if (rangeCM1 >= 68.9 && rangeCM1 <= 72.1) { //If in range
-                        if (integratedZ <= -178 && integratedZ >= -182) { //If in range and in angle
-                            m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                            m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                            m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                            m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                    if (columnRangeCheckNeeded(rangeCM2)) {
+                        CURRENT_STEP = steps.POSITIONCHECK;
+                        break;
+                    } else {
+
+                        if (runtime.seconds() > 1 && rangeCM1 >= (ceterposition - centertolerance) && rangeCM1 <= (ceterposition + centertolerance) && integratedZ <= -178
+                                && integratedZ >= -182) { //If checkPosition runtime is past 1 second
+                            setDrivePower(0);
+                            CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
                             break; //Exits switch statement
-                        } else { //If in range but outside angle
-                            m1.setPower(-turn * 2); //Sets motor 1 power to -turn times 2 to rotate
-                            m2.setPower(turn * 2); //Sets motor 2 power to turn times 2 to rotate
-                            m3.setPower(-turn * 2); //Sets motor 3 power to -turn times 2 to rotate
-                            m4.setPower(turn * 2); //Sets motor 4 power to turn times 2 to rotate
-                            runtime.reset(); //Resets the runtime
-                            break; //Exits switch statement
-                        }
-                    } else { //If outside range
-                        if (rangeCM1 < 68.9) { //If too close to wall
-                            m1.setPower(-speed - turn); //Sets motor 1 power to speed to move left
-                            m2.setPower(speed + turn); //Sets motor 2 power to speed to move left
-                            m3.setPower(speed - turn); //Sets motor 3 power to speed to move left
-                            m4.setPower(-speed + turn); //Sets motor 4 power to speed to move left
-                            runtime.reset(); //Resets the runtime
-                            break; //Exits switch statement
-                        } else { //If too far from wall
-                            m1.setPower(0.18 - turn); //Sets motor 1 power to 0.18 to move right
-                            m2.setPower(-0.18 + turn); //Sets motor 2 power to -0.18 to move right
-                            m3.setPower(-0.18 - turn); //Sets motor 3 power to -0.18 to move right
-                            m4.setPower(0.18 + turn); //Sets motor 4 power to 0.18 to move right
-                            runtime.reset(); //Resets the runtime
-                            break; //Exits switch statement
+                        } else if (rangeCM1 >= (ceterposition - centertolerance) && rangeCM1 <= (ceterposition + centertolerance)) { //If in range
+                            if (integratedZ <= -178 && integratedZ >= -182) { //If in range and in angle
+                                setDrivePower(0);
+                                break; //Exits switch statement
+                            } else { //If in range but outside angle
+                                setRotationPower(-turn * 2);
+                                runtime.reset(); //Resets the runtime
+                                break; //Exits switch statement
+                            }
+                        } else { //If outside range
+                            if (rangeCM1 < (ceterposition - centertolerance)) { //If too close to wall
+                                setStrafePower(-speed - turn);
+                                runtime.reset(); //Resets the runtime
+                                break; //Exits switch statement
+                            } else { //If too far from wall
+                                setStrafePower(0.18 - turn);
+                                runtime.reset(); //Resets the runtime
+                                break; //Exits switch statement
+                            }
                         }
                     }
 
@@ -547,71 +584,80 @@ public class RedFar extends AutoSteps {
                         turn = 0; //Sets the turn value to 0
                     }
 
-                    if (runtime.seconds() > 1 && rangeCM1 >= 50.9 && rangeCM1 <= 53.1 && integratedZ <= -178
-                            && integratedZ >= -182) { //If checkPosition runtime is past 1 second
-                        m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                        m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                        m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                        m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
-                        CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
-                        break; //Exits switch statement
-                    } else if (rangeCM1 >= 50.9 && rangeCM1 <= 53.1) { //If in range
-                        if (integratedZ <= -178 && integratedZ >= -182) { //If in range and in angle
-                            m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                            m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                            m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                            m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                    if (columnRangeCheckNeeded(rangeCM2)) {
+                        CURRENT_STEP = steps.POSITIONCHECK;
+                        break;
+                    } else {
+
+                        if (runtime.seconds() > 1 && rangeCM1 >= (rightposition - righttolerance) && rangeCM1 <= (rightposition + righttolerance) && integratedZ <= -178
+                                && integratedZ >= -182) { //If checkPosition runtime is past 1 second
+                            setDrivePower(0);
+                            CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
                             break; //Exits switch statement
-                        } else { //If in range but outside angle
-                            m1.setPower(-turn * 2); //Sets motor 1 power to -turn times 2 to rotate
-                            m2.setPower(turn * 2); //Sets motor 2 power to turn times 2 to rotate
-                            m3.setPower(-turn * 2); //Sets motor 3 power to -turn times 2 to rotate
-                            m4.setPower(turn * 2); //Sets motor 4 power to turn times 2 to rotate
-                            runtime.reset(); //Resets the runtime
-                            break; //Exits switch statement
-                        }
-                    } else { //If outside range
-                        if (rangeCM1 < 50.9) { //If too close to wall
-                            m1.setPower(-speed - turn); //Sets motor 1 power to speed to move left
-                            m2.setPower(speed + turn); //Sets motor 2 power to speed to move left
-                            m3.setPower(speed - turn); //Sets motor 3 power to speed to move left
-                            m4.setPower(-speed + turn); //Sets motor 4 power to speed to move left
-                            runtime.reset(); //Resets the runtime
-                            break; //Exits switch statement
-                        } else { //If too far from wall
-                            m1.setPower(0.18 - turn); //Sets motor 1 power to 0.18 to move right
-                            m2.setPower(-0.18 + turn); //Sets motor 2 power to -0.18 to move right
-                            m3.setPower(-0.18 - turn); //Sets motor 3 power to -0.18 to move right
-                            m4.setPower(0.18 + turn); //Sets motor 4 power to 0.18 to move right
-                            runtime.reset(); //Resets the runtime
-                            break; //Exits switch statement
+                        } else if (rangeCM1 >= (rightposition - righttolerance) && rangeCM1 <= (rightposition + righttolerance)) { //If in range
+                            if (integratedZ <= -178 && integratedZ >= -182) { //If in range and in angle
+                                setDrivePower(0);
+                                break; //Exits switch statement
+                            } else { //If in range but outside angle
+                                setRotationPower(-turn * 2);
+                                runtime.reset(); //Resets the runtime
+                                break; //Exits switch statement
+                            }
+                        } else { //If outside range
+                            if (rangeCM1 < (rightposition - righttolerance)) { //If too close to wall
+                                setStrafePower(-speed - turn);
+                                runtime.reset(); //Resets the runtime
+                                break; //Exits switch statement
+                            } else { //If too far from wall
+                                setStrafePower(0.18 - turn);
+                                runtime.reset(); //Resets the runtime
+                                break; //Exits switch statement
+                            }
                         }
                     }
+
+                case POSITIONCHECK: //Beginning of the case statement BACKUP
+
+                    if (!columnRangeCheckNeeded(rangeCM2)) { //Moves the robot backward for 0.6 seconds
+                        setDrivePower(0);
+                        if (image == 1) {
+                            CURRENT_STEP = steps.LEFTCOLUMN; //Changes step to LEFTCOLUMN
+                            runtime.reset(); //Resets the runtime
+                        }
+                        if (image == 2) {
+                            CURRENT_STEP = steps.CENTERCLOMUN; //Changes step to CENTERCLOMUN
+                            runtime.reset(); //Resets the runtime
+                        }
+                        if (image == 3) {
+                            CURRENT_STEP = steps.RIGHTCOLUMN; //Changes step to RIGHTCOLUMN
+                            runtime.reset(); //Resets the runtime
+                        }
+                        break; //Exits switch statement
+                    }
+
+                    if (rangeCM2 < 30) {
+                        setDrivePower(-0.1);
+                    } else {
+                        setDrivePower(0.1);
+                    }
+
+                    break; //Exits switch statement
 
                 case FORWARD: //Beginning of the case statement FORWARD
 
                     if (runtime.seconds() > 2) { //Moves the robot forward for 2 seconds
-                        m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                        m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                        m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                        m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                        setDrivePower(0);
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.DROP; //Changes step to DROP
                         break; //Exits switch statement
                     }
-                    m1.setPower(0.1); //Sets motor 1 power to 0.1 to make the robot move forward
-                    m2.setPower(0.1); //Sets motor 2 power to 0.1 to make the robot move forward
-                    m3.setPower(0.1); //Sets motor 3 power to 0.1 to make the robot move forward
-                    m4.setPower(0.1); //Sets motor 4 power to 0.1 to make the robot move forward
+                    setDrivePower(0.1);
                     break; //Exits switch statement
 
                 case DROP: //Beginning of the case statement DROP
 
                     s2.setPosition(1); //Sets servo 2 position to 1 (drops glyph)
-                    m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                    m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                    m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                    m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                    setDrivePower(0);
                     runtime.reset(); //Resets the runtime
                     CURRENT_STEP = steps.BACK; //Changes step to BACK
                     break; //Exits switch statement
@@ -619,60 +665,38 @@ public class RedFar extends AutoSteps {
                 case BACK: //Beginning of the case statement BACK
 
                     if (runtime.seconds() > 0.5) { //Moves the robot backward for 0.5 seconds
-                        m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                        m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                        m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                        m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                        setDrivePower(0);
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.FORWARD2; //Changes step to FORWARD2
                         break; //Exits switch statement
                     }
-                    m1.setPower(-0.1); //Sets motor 1 power to -0.1 to make the robot move backward
-                    m2.setPower(-0.1); //Sets motor 2 power to -0.1 to make the robot move backward
-                    m3.setPower(-0.1); //Sets motor 3 power to -0.1 to make the robot move backward
-                    m4.setPower(-0.1); //Sets motor 4 power to -0.1 to make the robot move backward
+                    setDrivePower(-0.1);
                     break; //Exits switch statement
 
                 case FORWARD2: //Beginning of the case statement FORWARD2
 
                     if (runtime.seconds() > 0.5) { //Moves the robot forward for 0.5 seconds
-                        m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                        m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                        m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                        m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                        setDrivePower(0);
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.BACK2; //Changes step to BACK2
                         break; //Exits switch statement
                     }
-                    m1.setPower(0.2); //Sets motor 1 power to 0.2 to make the robot move forward
-                    m2.setPower(0.2); //Sets motor 2 power to 0.2 to make the robot move forward
-                    m3.setPower(0.2); //Sets motor 3 power to 0.2 to make the robot move forward
-                    m4.setPower(0.2); //Sets motor 4 power to 0.2 to make the robot move forward
+                    setDrivePower(0.2);
                     break; //Exits switch statement
 
                 case BACK2: //Beginning of the case statement BACK2
 
                     if (runtime.seconds() > 0.3) { //Moves the robot backward for 0.3 seconds
-                        m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                        m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                        m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                        m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                        setDrivePower(0);
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.STOP; //Changes step to STOP
                         break; //Exits switch statement
                     }
-                    m1.setPower(-0.1); //Sets motor 1 power to -0.1 to make the robot move backward
-                    m2.setPower(-0.1); //Sets motor 2 power to -0.1 to make the robot move backward
-                    m3.setPower(-0.1); //Sets motor 3 power to -0.1 to make the robot move backward
-                    m4.setPower(-0.1); //Sets motor 4 power to -0.1 to make the robot move backward
+                    setDrivePower(-0.1);
                     break; //Exits switch statement
 
                 case STOP: //Beginning of the case statement STOP
-
-                    m1.setPower(0); //Sets motor 1 power to 0 to make sure it is not moving
-                    m2.setPower(0); //Sets motor 2 power to 0 to make sure it is not moving
-                    m3.setPower(0); //Sets motor 3 power to 0 to make sure it is not moving
-                    m4.setPower(0); //Sets motor 4 power to 0 to make sure it is not moving
+                    setDrivePower(0);
                     break; //Exits switch statement
             }
         }

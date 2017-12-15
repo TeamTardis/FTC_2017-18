@@ -71,11 +71,11 @@ public class TeleOp2018 extends OpMode {
         runtime = new ElapsedTime(); //Creates runtime variable for using time
 
         s1.setPosition(0); //Pulls jewel appendage against side of robot
-        s2.setPosition(0); //Opens 1st gripper
+        s2.setPosition(1); //Opens 1st gripper
         s3.setPosition(0.45); //Sets wrist rotation to be perpendicular to robot *NOT USED*
         s4.setPosition(0.52); //Sets wrist vertical to not move
         s5.setPosition(0); //Opens 2nd gripper *NOT USED*
-        s6.setPosition(0.5); //Sets arm extension to not move
+        s6.setPosition(0.5055); //Sets arm extension to not move
 
     } //Ends initiation
 
@@ -157,7 +157,7 @@ public class TeleOp2018 extends OpMode {
         } else if (gamepad2.left_bumper) {
             s6.setPosition(0); //Sets servo position to 0
         } else {
-            s6.setPosition(0.5); //Sets servo position to 0.5
+            s6.setPosition(0.5055); //Sets servo position to 0.475
         }
 
         //Controls for drive train (controller 1)
@@ -177,4 +177,3 @@ public class TeleOp2018 extends OpMode {
         }
     }
 }
-

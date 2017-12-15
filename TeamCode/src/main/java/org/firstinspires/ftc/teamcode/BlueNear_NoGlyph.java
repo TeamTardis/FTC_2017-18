@@ -7,6 +7,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -17,6 +18,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 //Imports
 
 @Autonomous(name = "BlueNear_NoGlyph", group = "Autonomous") //Names program and declares it autonomous
+@Disabled
 public class BlueNear_NoGlyph extends AutoSteps {
 
     public static final String TAG = "BlueNear_NoGlyph";

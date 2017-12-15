@@ -19,6 +19,7 @@ public class AutoSteps extends LinearOpMode { //Extends LinearOpMode for autonom
         LEFTCOLUMN, //Positions robot to line up at the left cryptobox column
         CENTERCLOMUN, //Positions robot to line up at the center cryptobox column
         RIGHTCOLUMN, //Positions robot to line up at the right cryptobox column
+        POSITIONCHECK, //Positions the robotto be in a correct range while finding the cryptobox column
         FORWARD, //Drives into cryptobox column to place glyph
         DROP, //Opens gripper and drops glyph
         BACK, //Backs out of cryptobox column
