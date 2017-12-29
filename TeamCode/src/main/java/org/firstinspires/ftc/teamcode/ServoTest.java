@@ -31,6 +31,7 @@ import static com.sun.tools.javac.util.Constants.format;
 //@Disabled
 
 public class ServoTest extends OpMode {
+
     Servo s1;
 
     public void init() { //Start of the initiation for autonomous
@@ -44,11 +45,10 @@ public class ServoTest extends OpMode {
 
         float LUD = gamepad1.left_stick_y; //Variable for left stick y axis
 
-        //double stest = LUD / 2 + 0.5;
-        double stest = LUD*2;
+        double stest = LUD / 2 + 0.5;
 
 
-        telemetry.addData("","Servo" + stest); //Adds telemetry to debug
+        telemetry.addData("","Servo" + s1.getPosition()); //Adds telemetry to debug
         telemetry.update(); //Updates telemetry with new information
 
         s1.setPosition(stest);

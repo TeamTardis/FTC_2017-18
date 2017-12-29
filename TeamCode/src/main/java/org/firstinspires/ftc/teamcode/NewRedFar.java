@@ -62,6 +62,11 @@ public class NewRedFar extends AutoSteps {
     DcMotor m6;
 
     /**
+     * Arm Crunch Vertical, gearbox 40
+     */
+    DcMotor m7;
+
+    /**
      * Jewel Arm Servo, 190 degrees
      */
     Servo s1; //Color sensor arm servo
@@ -72,14 +77,14 @@ public class NewRedFar extends AutoSteps {
     Servo s2; //Claw grip servo
 
     /**
-     * Wrist Rotation Servo, 190 degrees, extended mode
+     * Left Arm Crunch Servo, 190 degrees
      */
-    Servo s3; //Wrist rotation
+    Servo s3; //Left arm crunch servo
 
     /**
-     * Claw Vertical Servo, continuous
+     * Right Arm Crunch Servo, 190 degrees
      */
-    Servo s4; //Claw vertical
+    Servo s4; //Right arm crunch servo
 
     /**
      * 2nd Claw Grip Servo, 190 degrees
@@ -119,11 +124,11 @@ public class NewRedFar extends AutoSteps {
     /**
      * Positive = Forward
      **/
-    public void setDrivePower(double power) {
-        m1.setPower(power); //Sets motor 1 power to -0.1 to make the robot move backward
-        m2.setPower(power); //Sets motor 2 power to -0.1 to make the robot move backward
-        m3.setPower(power); //Sets motor 3 power to -0.1 to make the robot move backward
-        m4.setPower(power); //Sets motor 4 power to -0.1 to make the robot move backward
+    public void setDrivePower(double power, double turn) {
+        m1.setPower(power - turn); //Sets motor 1 power to -0.1 to make the robot move backward
+        m2.setPower(power + turn); //Sets motor 2 power to -0.1 to make the robot move backward
+        m3.setPower(power - turn); //Sets motor 3 power to -0.1 to make the robot move backward
+        m4.setPower(power + turn); //Sets motor 4 power to -0.1 to make the robot move backward
     }
 
     /**
@@ -139,11 +144,11 @@ public class NewRedFar extends AutoSteps {
     /**
      * Positive = Right
      **/
-    public void setStrafePower(double power) {
-        m1.setPower(power); //Sets motor 1 power to -0.1 to make the robot move backward
-        m2.setPower(-power); //Sets motor 2 power to -0.1 to make the robot move backward
-        m3.setPower(-power); //Sets motor 3 power to -0.1 to make the robot move backward
-        m4.setPower(power); //Sets motor 4 power to -0.1 to make the robot move backward
+    public void setStrafePower(double power, double turn) {
+        m1.setPower(power - turn); //Sets motor 1 power to -0.1 to make the robot move backward
+        m2.setPower(-power + turn); //Sets motor 2 power to -0.1 to make the robot move backward
+        m3.setPower(-power - turn); //Sets motor 3 power to -0.1 to make the robot move backward
+        m4.setPower(power + turn); //Sets motor 4 power to -0.1 to make the robot move backward
     }
 
     double rangeCheckClose = 25;
@@ -208,10 +213,10 @@ public class NewRedFar extends AutoSteps {
         checkTime = new ElapsedTime(); //Creates runtime variable for using time
 
         s1.setPosition(0); //Pulls jewel appendage against side of robot
-        s2.setPosition(0); //Opens 1st gripper
-        s3.setPosition(0.45); //Sets wrist rotation to be perpendicular to robot *NOT USED*
-        s4.setPosition(0.52); //Sets wrist vertical to not move
-        s5.setPosition(0); //Opens 2nd gripper *NOT USED*
+        s2.setPosition(0);
+        s3.setPosition(1); //Closes left arm crunch servo
+        s4.setPosition(1); //Closes right arm crunch servo
+        s5.setPosition(0);
         s6.setPosition(0.5); //Sets arm extension to not move
 
         modernRoboticsI2cGyro.calibrate(); //Gyro calibration
@@ -302,9 +307,6 @@ public class NewRedFar extends AutoSteps {
             rCM2Prev = rangeCM2; //Updates rCM2Prev variable with info current rangeCM1 variable
             rangeCM4 = (rCM4Curr * 0.2) + (rCM4Prev * 0.8); //Updates rangeCM4 variable with low pass filter
             rCM4Prev = rangeCM4; //Updates rCM4Prev variable with info current rangeCM4 variable
-            rangeCM2 = r2.getDistance(DistanceUnit.CM); //Updates rangeCM2 variable with current reading
-            rangeCM3 = r3.getDistance(DistanceUnit.CM); //Updates rangeCM3 variable with current reading
-            rangeCM4 = r4.getDistance(DistanceUnit.CM); //Updates rangeCM4 variable with current reading
             integratedZ = modernRoboticsI2cGyro.getIntegratedZValue(); //Gyro integratedZ value
 
             ///////////////////////////
@@ -331,7 +333,8 @@ public class NewRedFar extends AutoSteps {
 
                     RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate); //Image scanning
 
-                    s2.setPosition(0); //Sets servo 2 position to 0 (closes gripper)
+                    s3.setPosition(1); //Closes left arm crunch servo
+                    s4.setPosition(1); //Closes right arm crunch servo
 
                     if (vuMark == RelicRecoveryVuMark.LEFT) { //Vuforia for left pictograph
                         image = 1;
@@ -357,7 +360,7 @@ public class NewRedFar extends AutoSteps {
 
                 case LOWERSERVO: //Beginning of the case statement LOWERSERVO
 
-                    setDrivePower(0);
+                    setDrivePower(0, 0);
 
                     s1.setPosition(0.55); //Sets servo 1 position to 0.55 (lowers jewel arm)
                     runtime.reset(); //Resets the runtime
@@ -383,10 +386,10 @@ public class NewRedFar extends AutoSteps {
                         CURRENT_STEP = steps.RAISESERVO;
                     }
 
-                    if (runtime.seconds() < .7) { //Activates servo to raise glyph
-                        s4.setPosition(1); //Sets servo 4 position to 1 (raises glyph)
+                    if (runtime.seconds() < .4) { //Activates servo to raise glyph
+                        m7.setPower(0.2);
                     } else {
-                        s4.setPosition(0.52); //Sets servo 4 position to 0.52 (stops glyph from lifting)
+                        m7.setPower(0);
                     }
 
                     if (runtime.seconds() > .5) {
@@ -397,27 +400,27 @@ public class NewRedFar extends AutoSteps {
                 case KNOCKBACK: //Beginning of case statement KNOCKBACK
 
                     if (runtime.seconds() > 0.4) {
-                        setDrivePower(0);
+                        setDrivePower(0, 0);
                         CURRENT_STEP = steps.KNOCKFORWARDS; //Changes step to KNOCKFORWARDS
                         break; //Exits switch statement
                     }
-                    setDrivePower(0.1);
+                    setDrivePower(0.1, 0);
                     s4.setPosition(0.52); //Sets servo 4 position to 0.52 (stops glyph from lifting)
                     break; //Exits switch statement
 
                 case KNOCKFORWARDS: //Beginning of case statement KNOCKFORWARDS
 
                     if (runtime.seconds() > 0.5) {
-                        setDrivePower(0);
+                        setDrivePower(0, 0);
                         CURRENT_STEP = steps.RAISESERVO; //Changes step to RAISESERVO
                         break; //Exits switch statement
                     }
-                    setDrivePower(-0.1);
+                    setDrivePower(-0.1, 0);
                     break; //Exits switch statement
 
                 case RAISESERVO: //Beginning of the case statement RAISESERVO
 
-                    setDrivePower(0);
+                    setDrivePower(0, 0);
                     s1.setPosition(0); //Sets servo 1 position to 0 (raises jewel arm)
                     runtime.reset(); //Resets the runtime
                     CURRENT_STEP = steps.DRIVETOCRYPTOBOX; //Changes step to DRIVETOCRYPTOBOX
@@ -426,18 +429,18 @@ public class NewRedFar extends AutoSteps {
                 case DRIVETOCRYPTOBOX: //Beginning of the case statement DRIVETOCRYPTOBOX
 
                     if (rangeCM4 < 55) { //Moves backward until wall
-                        setDrivePower(0);
+                        setDrivePower(0, 0);
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.ROTATE; //Changes step to ROTATE
                     }
-                    setDrivePower(-0.1);
+                    setDrivePower(-0.1, 0);
                     s1.setPosition(0); //Sets servo 1 position to 0 (raises jewel arm)
                     break; //Exits switch statement
 
                 case ROTATE: //Beginning of the case statement ROTATE
 
                     if (integratedZ < -140) { //Rotates robot to the left about 140 degrees
-                        setDrivePower(0);
+                        setDrivePower(0, 0);
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.BACKUP; //Changes step to BACKUP
                     }
@@ -449,15 +452,10 @@ public class NewRedFar extends AutoSteps {
 
                     straight = -180; //Sets gyro variable to -180
 
-                    if (integratedZ > straight) { //Checks to see if the robot is moving and the value of straight is greater than the value integratedZ
-                        turn = .05; //Sets the turn value to .05
-                    } else if (integratedZ < straight) { //Checks to see if the robot is moving and the value of straight is less than the value integratedZ
-                        turn = -.05; //Sets the turn value to -.05
-                    } else { //Default value (robot is not moving)
-                        turn = 0; //Sets the turn value to 0
-                    }
+                    turn = (integratedZ - straight) / 50;
+
                     if (rangeCM2 > 30) { //Moves the robot backward for 0.6 seconds
-                        setDrivePower(0);
+                        setDrivePower(0, turn);
                         if (image == 1) {
                             CURRENT_STEP = steps.LEFTCOLUMN; //Changes step to LEFTCOLUMN
                             runtime.reset(); //Resets the runtime
@@ -472,7 +470,7 @@ public class NewRedFar extends AutoSteps {
                         }
                         break; //Exits switch statement
                     }
-                    setDrivePower(-0.1 - turn);
+                    setDrivePower(-0.1, turn);
                     break; //Exits switch statement
 
                 case LEFTCOLUMN: //Beginning of the case statement LEFTCOLUMN (Target position: 86 cm)
@@ -482,13 +480,7 @@ public class NewRedFar extends AutoSteps {
 
                     straight = -180; //Sets gyro variable to -180
 
-                    if (integratedZ > straight) { //Checks to see if the robot is moving and the value of straight is greater than the value integratedZ
-                        turn = .05; //Sets the turn value to .05
-                    } else if (integratedZ < straight) { //Checks to see if the robot is moving and the value of straight is less than the value integratedZ
-                        turn = -.05; //Sets the turn value to -.05
-                    } else { //Default value (robot is not moving)
-                        turn = 0; //Sets the turn value to 0
-                    }
+                    turn = (integratedZ - straight) / 50;
 
                     if (columnRangeCheckNeeded(rangeCM2)) {
                         CURRENT_STEP = steps.POSITIONCHECK;
@@ -497,12 +489,12 @@ public class NewRedFar extends AutoSteps {
 
                         if (runtime.seconds() > 1 && rangeCM1 >= (leftposition - lefttolerance) && rangeCM1 <= (leftposition + lefttolerance) && integratedZ <= -178
                                 && integratedZ >= -182) { //If in range and runtime is past 1 second
-                            setDrivePower(0);
-                            CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
+                            setDrivePower(0, 0);
+                            CURRENT_STEP = steps.STOP; //Changes step to FORWARD
                             break; //Exits switch statement
                         } else if (rangeCM1 >= (leftposition - lefttolerance) && rangeCM1 <= (leftposition + lefttolerance)) { //If in range
                             if (integratedZ <= -178 && integratedZ >= -182) { //If in range and in angle
-                                setDrivePower(0);
+                                setDrivePower(0, 0);
                                 break; //Exits switch statement
                             } else { //If in range but outside angle
                                 setRotationPower(-turn * 2);
@@ -511,11 +503,11 @@ public class NewRedFar extends AutoSteps {
                             }
                         } else { //If outside range
                             if (rangeCM1 < (leftposition - lefttolerance)) { //If too close to wall
-                                setStrafePower(-speed - turn);
+                                setStrafePower(-speed, turn);
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             } else { //If too far from wall
-                                setStrafePower(0.18 - turn);
+                                setStrafePower(0.18, turn);
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             }
@@ -529,13 +521,7 @@ public class NewRedFar extends AutoSteps {
 
                     straight = -180; //Sets gyro variable to -180
 
-                    if (integratedZ > straight) { //Checks to see if the robot is moving and the value of straight is greater than the value integratedZ
-                        turn = .05; //Sets the turn value to .05
-                    } else if (integratedZ < straight) { //Checks to see if the robot is moving and the value of straight is less than the value integratedZ
-                        turn = -.05; //Sets the turn value to -.05
-                    } else { //Default value (robot is not moving)
-                        turn = 0; //Sets the turn value to 0
-                    }
+                    turn = (integratedZ - straight) / 50;
 
                     if (columnRangeCheckNeeded(rangeCM2)) {
                         CURRENT_STEP = steps.POSITIONCHECK;
@@ -544,12 +530,12 @@ public class NewRedFar extends AutoSteps {
 
                         if (runtime.seconds() > 1 && rangeCM1 >= (ceterposition - centertolerance) && rangeCM1 <= (ceterposition + centertolerance) && integratedZ <= -178
                                 && integratedZ >= -182) { //If checkPosition runtime is past 1 second
-                            setDrivePower(0);
-                            CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
+                            setDrivePower(0, 0);
+                            CURRENT_STEP = steps.STOP; //Changes step to FORWARD
                             break; //Exits switch statement
                         } else if (rangeCM1 >= (ceterposition - centertolerance) && rangeCM1 <= (ceterposition + centertolerance)) { //If in range
                             if (integratedZ <= -178 && integratedZ >= -182) { //If in range and in angle
-                                setDrivePower(0);
+                                setDrivePower(0, 0);
                                 break; //Exits switch statement
                             } else { //If in range but outside angle
                                 setRotationPower(-turn * 2);
@@ -558,11 +544,11 @@ public class NewRedFar extends AutoSteps {
                             }
                         } else { //If outside range
                             if (rangeCM1 < (ceterposition - centertolerance)) { //If too close to wall
-                                setStrafePower(-speed - turn);
+                                setStrafePower(-speed, turn);
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             } else { //If too far from wall
-                                setStrafePower(0.18 - turn);
+                                setStrafePower(0.18, turn);
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             }
@@ -576,13 +562,7 @@ public class NewRedFar extends AutoSteps {
 
                     straight = -180; //Sets gyro variable to -180
 
-                    if (integratedZ > straight) { //Checks to see if the robot is moving and the value of straight is greater than the value integratedZ
-                        turn = .05; //Sets the turn value to .05
-                    } else if (integratedZ < straight) { //Checks to see if the robot is moving and the value of straight is less than the value integratedZ
-                        turn = -.05; //Sets the turn value to -.05
-                    } else { //Default value (robot is not moving)
-                        turn = 0; //Sets the turn value to 0
-                    }
+                    turn = (integratedZ - straight) / 50;
 
                     if (columnRangeCheckNeeded(rangeCM2)) {
                         CURRENT_STEP = steps.POSITIONCHECK;
@@ -591,12 +571,12 @@ public class NewRedFar extends AutoSteps {
 
                         if (runtime.seconds() > 1 && rangeCM1 >= (rightposition - righttolerance) && rangeCM1 <= (rightposition + righttolerance) && integratedZ <= -178
                                 && integratedZ >= -182) { //If checkPosition runtime is past 1 second
-                            setDrivePower(0);
-                            CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
+                            setDrivePower(0, 0);
+                            CURRENT_STEP = steps.STOP; //Changes step to FORWARD
                             break; //Exits switch statement
                         } else if (rangeCM1 >= (rightposition - righttolerance) && rangeCM1 <= (rightposition + righttolerance)) { //If in range
                             if (integratedZ <= -178 && integratedZ >= -182) { //If in range and in angle
-                                setDrivePower(0);
+                                setDrivePower(0, 0);
                                 break; //Exits switch statement
                             } else { //If in range but outside angle
                                 setRotationPower(-turn * 2);
@@ -605,11 +585,11 @@ public class NewRedFar extends AutoSteps {
                             }
                         } else { //If outside range
                             if (rangeCM1 < (rightposition - righttolerance)) { //If too close to wall
-                                setStrafePower(-speed - turn);
+                                setStrafePower(-speed, turn);
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             } else { //If too far from wall
-                                setStrafePower(0.18 - turn);
+                                setStrafePower(0.18, turn);
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             }
@@ -619,7 +599,7 @@ public class NewRedFar extends AutoSteps {
                 case POSITIONCHECK: //Beginning of the case statement BACKUP
 
                     if (!columnRangeCheckNeeded(rangeCM2)) { //Moves the robot backward for 0.6 seconds
-                        setDrivePower(0);
+                        setDrivePower(0, 0);
                         if (image == 1) {
                             CURRENT_STEP = steps.LEFTCOLUMN; //Changes step to LEFTCOLUMN
                             runtime.reset(); //Resets the runtime
@@ -636,9 +616,9 @@ public class NewRedFar extends AutoSteps {
                     }
 
                     if (rangeCM2 < 30) {
-                        setDrivePower(-0.1);
+                        setDrivePower(-0.1, 0);
                     } else {
-                        setDrivePower(0.1);
+                        setDrivePower(0.1, 0);
                     }
 
                     break; //Exits switch statement
@@ -646,18 +626,19 @@ public class NewRedFar extends AutoSteps {
                 case FORWARD: //Beginning of the case statement FORWARD
 
                     if (runtime.seconds() > 2) { //Moves the robot forward for 2 seconds
-                        setDrivePower(0);
+                        setDrivePower(0, 0);
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.DROP; //Changes step to DROP
                         break; //Exits switch statement
                     }
-                    setDrivePower(0.1);
+                    setDrivePower(0.1, 0);
                     break; //Exits switch statement
 
                 case DROP: //Beginning of the case statement DROP
 
-                    s2.setPosition(1); //Sets servo 2 position to 1 (drops glyph)
-                    setDrivePower(0);
+                    s3.setPosition(0.5); //Opens left arm crunch servo
+                    s4.setPosition(0.5); //Opens right arm crunch servo
+                    setDrivePower(0, 0);
                     runtime.reset(); //Resets the runtime
                     CURRENT_STEP = steps.BACK; //Changes step to BACK
                     break; //Exits switch statement
@@ -665,41 +646,40 @@ public class NewRedFar extends AutoSteps {
                 case BACK: //Beginning of the case statement BACK
 
                     if (runtime.seconds() > 0.5) { //Moves the robot backward for 0.5 seconds
-                        setDrivePower(0);
+                        setDrivePower(0, 0);
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.FORWARD2; //Changes step to FORWARD2
                         break; //Exits switch statement
                     }
-                    setDrivePower(-0.1);
+                    setDrivePower(-0.1, 0);
                     break; //Exits switch statement
 
                 case FORWARD2: //Beginning of the case statement FORWARD2
 
                     if (runtime.seconds() > 0.5) { //Moves the robot forward for 0.5 seconds
-                        setDrivePower(0);
+                        setDrivePower(0, 0);
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.BACK2; //Changes step to BACK2
                         break; //Exits switch statement
                     }
-                    setDrivePower(0.2);
+                    setDrivePower(0.2, 0);
                     break; //Exits switch statement
 
                 case BACK2: //Beginning of the case statement BACK2
 
                     if (runtime.seconds() > 0.3) { //Moves the robot backward for 0.3 seconds
-                        setDrivePower(0);
+                        setDrivePower(0, 0);
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.STOP; //Changes step to STOP
                         break; //Exits switch statement
                     }
-                    setDrivePower(-0.1);
+                    setDrivePower(-0.1, 0);
                     break; //Exits switch statement
 
                 case STOP: //Beginning of the case statement STOP
-                    setDrivePower(0);
+                    setDrivePower(0, 0);
                     break; //Exits switch statement
             }
         }
     }
 }
-

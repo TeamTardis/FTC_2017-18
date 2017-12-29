@@ -62,7 +62,7 @@ public class SensorMRGyro extends LinearOpMode {
    * implementations. {@link ModernRoboticsI2cGyro}, by contrast, provides functionality that
    * is unique to the Modern Robotics gyro sensor.
    */
-  IntegratingGyroscope gyro;
+  IntegratingGyroscope gyro; //Gyro
   ModernRoboticsI2cGyro modernRoboticsI2cGyro;
 
   // A timer helps provide feedback while calibration is taking place
@@ -77,22 +77,18 @@ public class SensorMRGyro extends LinearOpMode {
     // Get a reference to a Modern Robotics gyro object. We use several interfaces
     // on this object to illustrate which interfaces support which functionality.
     modernRoboticsI2cGyro = hardwareMap.get(ModernRoboticsI2cGyro.class, "gyro");
-    gyro = (IntegratingGyroscope)modernRoboticsI2cGyro;
+    gyro = (IntegratingGyroscope) modernRoboticsI2cGyro;
     // If you're only interested int the IntegratingGyroscope interface, the following will suffice.
     // gyro = hardwareMap.get(IntegratingGyroscope.class, "gyro");
     // A similar approach will work for the Gyroscope interface, if that's all you need.
 
     // Start calibrating the gyro. This takes a few seconds and is worth performing
     // during the initialization phase at the start of each opMode.
-    telemetry.log().add("Gyro Calibrating. Do Not Move!");
-    modernRoboticsI2cGyro.calibrate();
+    modernRoboticsI2cGyro.calibrate(); //Gyro calibration
 
-    // Wait until the gyro calibration is complete
-    timer.reset();
-    while (!isStopRequested() && modernRoboticsI2cGyro.isCalibrating())  {
-      telemetry.addData("calibrating", "%s", Math.round(timer.seconds())%2==0 ? "|.." : "..|");
-      telemetry.update();
-      sleep(50);
+    while (modernRoboticsI2cGyro.isCalibrating()) { //Adds telemetry for gyro calibration
+      telemetry.addData("", "Gyro Calibrating. Please wait..."); //Adds telemetry
+      telemetry.update(); //Updates telemetry
     }
 
     telemetry.log().clear(); telemetry.log().add("Gyro Calibrated. Press Start.");
