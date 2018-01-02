@@ -26,9 +26,9 @@ public class TeleOp2018 extends OpMode {
 
     Servo s1; //Color sensor arm servo
     Servo s2; //Claw grip servo
-    Servo s3; //Wrist rotation
-    Servo s4; //Claw vertical
-    Servo s5; //Second claw grip
+    Servo s3; //Arm Crunch A
+    Servo s4; //Arm Crunch B
+//    Servo s5; //Second claw grip
     Servo s6; //Arm extension
 
     IntegratingGyroscope gyro; //Gyro
@@ -69,7 +69,7 @@ public class TeleOp2018 extends OpMode {
         s2 = hardwareMap.servo.get("s2"); //Sets s2 in the config
         s3 = hardwareMap.servo.get("s3"); //Sets s3 in the config
         s4 = hardwareMap.servo.get("s4"); //Sets s4 in the config
-        s5 = hardwareMap.servo.get("s5"); //Sets s5 in the config
+//        s5 = hardwareMap.servo.get("s5"); //Sets s5 in the config
         s6 = hardwareMap.servo.get("s6"); //Sets s6 in the config
 
         m2.setDirection(DcMotor.Direction.REVERSE); //Sets m2 direction to REVERSE
@@ -78,10 +78,10 @@ public class TeleOp2018 extends OpMode {
         runtime = new ElapsedTime(); //Creates runtime variable for using time
 
         s1.setPosition(0); //Pulls jewel appendage against side of robot
-        s2.setPosition(0.5); //Opens 1st gripper
-        s3.setPosition(1); //Sets wrist rotation to be perpendicular to robot *NOT USED*
-        s4.setPosition(0); //Sets wrist vertical to not move
-        s5.setPosition(0.5); //Opens 2nd gripper *NOT USED*
+        s2.setPosition(1); //Opens 1st gripper
+        s3.setPosition(0.4); //Sets wrist rotation to be perpendicular to robot *NOT USED*
+        s4.setPosition(0.6); //Sets wrist vertical to not move
+//        s5.setPosition(0.5); //Opens 2nd gripper *NOT USED*
         s6.setPosition(0.5055); //Sets arm extension to not move
 
     } //Ends initiation
@@ -105,23 +105,21 @@ public class TeleOp2018 extends OpMode {
             s2.setPosition(0.5); //Sets servo position to 1
         }
 
-        //Controls for 1st claw (Controller 2)
-        if (gamepad2.right_trigger != 0) { //If right trigger is pressed, close claw
-            s3.setPosition(1); //Sets servo position to 0
-            s4.setPosition(0); //Sets servo position to 0
-        } else { //If not pressed, open claw
-            s3.setPosition(0); //Sets servo position to 1
-            s4.setPosition(1); //Sets servo position to 1
-        }
-
-        //Controls for mast
-        if ((gamepad2.left_stick_y > 0.1 || gamepad2.left_stick_y < -0.1)
-            //&& m7.getCurrentPosition() > -1000 && m7.getCurrentPosition() < 100
-                ) { //If left trigger is pressed, close claw
-            m7.setPower(-gamepad2.left_stick_y / 10);
+        if (gamepad2.left_stick_y > 0.1){
+            m7.setPower(gamepad2.left_stick_y);
+        } else if (gamepad2.left_stick_y < -0.1) {
+            m7.setPower(gamepad2.left_stick_y / 0.7);
         } else {
             m7.setPower(0);
         }
+
+//        if (encoderCurrent < -100 && gamepad2.left_stick_y < 0.1) {
+//            m7.setPower(gamepad2.left_stick_y / 4);
+//        } else if (encoderCurrent < -1200 && gamepad2.left_stick_y > -0.1) {
+//            m7.setPower(gamepad2.left_stick_y / 4);
+//        } else {
+//            m7.setPower(0);
+//        }
 
 //        //Controls for vertical wrist movement (Controller 2)
 //        if (gamepad2.x) { //If button x is pressed, extend wrist
@@ -148,24 +146,33 @@ public class TeleOp2018 extends OpMode {
             m5.setPower(0); //Sets motor power to 0
         }
 
-        //Controls for wrist rotation (controller 2) *NOT USED*
-        if (gamepad2.a) {
-            wristPosition += 0.005; //Adds 0.005 to variable wristPosition
-        }
-        if (gamepad2.b) {
-            wristPosition -= 0.005; //Subtracts 0.005 to variable wristPosition
-        }
-        double stest = wristPosition;
-        s3.setPosition(wristPosition); //Sets servo position to wrist position
+//        //Controls for wrist rotation (controller 2) *NOT USED*
+//        if (gamepad2.a) {
+//            wristPosition += 0.005; //Adds 0.005 to variable wristPosition
+//        }
+//        if (gamepad2.b) {
+//            wristPosition -= 0.005; //Subtracts 0.005 to variable wristPosition
+//        }
+//        double stest = wristPosition;
+//        s3.setPosition(wristPosition); //Sets servo position to wrist position
 
-        //Controls for wrist rotation (controller 2) *NOT USED*
+        //Controls for arm extension (controller 2)
         if (gamepad2.left_bumper && armPosition <= 1) {
-            armPosition += 0.01; //Adds 0.005 to variable wristPosition
+            armPosition += 0.02; //Retraction for arm extension
         }
         if (gamepad2.right_bumper && armPosition >= 0.5) {
-            armPosition -= 0.01; //Subtracts 0.005 to variable wristPosition
+            armPosition -= 0.02; //Extension for arm extension
         }
-        s6.setPosition(armPosition); //Sets servo position to wrist position
+        s6.setPosition(armPosition); //Sets servo position to arm extension servo
+
+        //Controls for arm crunch (Controller 2)
+        if (gamepad2.right_trigger != 0) { //If right trigger is pressed, close claw
+            s3.setPosition(0.35); //Sets servo position to 0.35
+            s4.setPosition(0.7); //Sets servo position to 0.7
+        } else { //If not pressed, open arm crunch
+            s3.setPosition(0); //Sets servo position to 1
+            s4.setPosition(1); //Sets servo position to 1
+        }
 
         //Controls for drive train (controller 1)
         if (gamepad1.right_trigger == 0) { //Controls for slow mode (default)
