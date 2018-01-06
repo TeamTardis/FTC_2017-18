@@ -28,7 +28,7 @@ import static com.sun.tools.javac.util.Constants.format;
 //Imports
 
 @TeleOp(name="GyroTesting", group="TeleOp")
-//@Disabled
+@Disabled
 
 public class GyroTesting extends OpMode {
 

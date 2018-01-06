@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -48,6 +49,8 @@ public class TeleOp2018 extends OpMode {
     I2cDeviceSynch r4reader;
     ModernRoboticsI2cRangeSensor r4; //Back range sensor
 
+    TouchSensor touchSensor1; //Define touch sensor as touchSensor1 (mast limit switch)
+
     ElapsedTime runtime; //Time variable
     float straight = 0; //Variable for straight motion
     double turn = 0; //Variable for turn
@@ -75,6 +78,8 @@ public class TeleOp2018 extends OpMode {
         m2.setDirection(DcMotor.Direction.REVERSE); //Sets m2 direction to REVERSE
         m4.setDirection(DcMotor.Direction.REVERSE); //Sets m4 direction to REVERSE
 
+        touchSensor1 = hardwareMap.touchSensor.get("t1"); //Sets touchSensor1 to t1 in the config
+
         runtime = new ElapsedTime(); //Creates runtime variable for using time
 
         s1.setPosition(0); //Pulls jewel appendage against side of robot
@@ -82,19 +87,20 @@ public class TeleOp2018 extends OpMode {
         s3.setPosition(0.4); //Sets Arm Crunch Servo A
         s4.setPosition(0.6); //Sets Arm Crunch Servo B
 //        s5.setPosition(0.5); //Opens 2nd gripper *NOT USED*
-        s6.setPosition(0.5055); //Sets arm extension to not move
+        s6.setPosition(0.5); //Sets arm extension to not move
 
     } //Ends initiation
+
 
     @Override
     public void loop() {  //Start of main loop
 
         encoderCurrent = m7.getCurrentPosition(); //Defines encoderCurrent as m7 encoder position
 
-        telemetry.addData("Motor 5: ", encoderCurrent); //Telemetry for variables
+        telemetry.addData("Motor 7: ", encoderCurrent); //Telemetry for variables
 
         float LUD = gamepad1.left_stick_y; //Variable for left stick y axis on gamepad 1 for driver control
-        float LRL = -gamepad1.left_stick_x; //Variable for left stick x axis on gamepad 1 for driver control
+        double LRL = (-gamepad1.left_stick_x)*1.5; //Variable for left stick x axis on gamepad 1 for driver control
         float RUD = gamepad1.right_stick_y; //Variable for right stick y axis on gamepad 1 for driver control
         float RLR = -gamepad1.right_stick_x; //Variable for right stick x axis on gamepad 1 for driver control
 
@@ -106,8 +112,8 @@ public class TeleOp2018 extends OpMode {
         }
 
         //Controls the raising and lower the arm crunch mast. (Controller 2)
-        if (gamepad2.left_stick_y > 0.1){ //If the y axis is raised
-            m7.setPower(gamepad2.left_stick_y / 2); //Raise the arm mast
+        if (gamepad2.left_stick_y > 0.1 && !touchSensor1.isPressed()){ //If the y axis is raised
+            m7.setPower(gamepad2.left_stick_y / 4); //Raise the arm mast
         } else if (gamepad2.left_stick_y < -0.1) { //If the y axis is lowered
             m7.setPower(gamepad2.left_stick_y / 2); //Lower the arm mast
         } else {
@@ -132,10 +138,10 @@ public class TeleOp2018 extends OpMode {
 
         //Controls for arm extension (controller 2)
         if (gamepad2.left_bumper && armPosition <= 1) {
-            armPosition += 0.02; //Retraction for arm extension
+            armPosition += 0.005; //Retraction for arm extension
             s6.setPosition(armPosition); //Sets servo position to arm extension servo
         } else if (gamepad2.right_bumper && armPosition >= 0.5) {
-            armPosition -= 0.02; //Extension for arm extension
+            armPosition -= 0.005; //Extension for arm extension
             s6.setPosition(armPosition); //Sets servo position to arm extension servo
         }
 
@@ -150,10 +156,10 @@ public class TeleOp2018 extends OpMode {
 
         //Controls for drive train (controller 1)
         if (gamepad1.right_trigger == 0) { //Controls for slow mode (default)
-            m1.setPower(((LRL + LUD) / 3) + (RLR / 6) - turn); //Steering for top left
-            m2.setPower(((LUD - LRL) / 3) - (RLR / 6) + turn); //Steering for top right
-            m3.setPower(((LUD - LRL) / 3) + (RLR / 6) - turn); //Steering for back left
-            m4.setPower(((LRL + LUD) / 3) - (RLR / 6) + turn); //Steering for back right
+            m1.setPower(((LRL + LUD) / 3) + (RLR / 4) - turn); //Steering for top left
+            m2.setPower(((LUD - LRL) / 3) - (RLR / 4) + turn); //Steering for top right
+            m3.setPower(((LUD - LRL) / 3) + (RLR / 4) - turn); //Steering for back left
+            m4.setPower(((LRL + LUD) / 3) - (RLR / 4) + turn); //Steering for back right
         } else { //Controls for normal mode
             m1.setPower(((LRL + LUD) / 2) + (RLR / 2) - turn); //Steering for top left
             m2.setPower(((LUD - LRL) / 2) - (RLR / 2) + turn); //Steering for top right

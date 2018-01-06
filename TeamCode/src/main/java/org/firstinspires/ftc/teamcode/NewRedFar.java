@@ -16,7 +16,6 @@ import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -26,8 +25,8 @@ import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.Servo;
 //Imports
 
-@Autonomous(name = "NewRedFar", group = "Autonomous")
-public class NewRedFar extends AutoSteps {
+@Autonomous(name = "NewRedFar", group = "Autonomous") //Names program
+public class NewRedFar extends AutoSteps { //Creates class and extends program wih steps
 
     public static final String TAG = "NewRedFar";
 
@@ -121,72 +120,100 @@ public class NewRedFar extends AutoSteps {
 
     VuforiaLocalizer vuforia; //Image recognition
 
+    double minPowerPos = 0.1; //Variables for minimum powers
+    double minPowerNeg = -0.1;
+
     /**
      * Positive = Forward
      **/
     public void setDrivePower(double power, double turn) {
-        m1.setPower(power - turn); //Sets motor 1 power to -0.1 to make the robot move backward
-        m2.setPower(power + turn); //Sets motor 2 power to -0.1 to make the robot move backward
-        m3.setPower(power - turn); //Sets motor 3 power to -0.1 to make the robot move backward
-        m4.setPower(power + turn); //Sets motor 4 power to -0.1 to make the robot move backward
+
+        //Unless power is 0, set power to at least some minimum
+        if (power < minPowerPos && power > 0) {
+            power = minPowerPos;
+        } else if (power > minPowerNeg && power < 0) {
+            power = minPowerNeg;
+        }
+
+        m1.setPower(power - turn); //Drives robot forwards or backwards, availability for turn variable
+        m2.setPower(power + turn);
+        m3.setPower(power - turn);
+        m4.setPower(power + turn);
     }
 
     /**
      * Positive = Clockwise
      **/
     public void setRotationPower(double power) {
-        m1.setPower(power); //Sets motor 1 power to -0.1 to make the robot move backward
-        m2.setPower(-power); //Sets motor 2 power to -0.1 to make the robot move backward
-        m3.setPower(power); //Sets motor 3 power to -0.1 to make the robot move backward
-        m4.setPower(-power); //Sets motor 4 power to -0.1 to make the robot move backward
+
+        //Unless power is 0, set power to at least some minimum
+        if (power < minPowerPos && power > 0) {
+            power = minPowerPos;
+        } else if (power > minPowerNeg && power < 0) {
+            power = minPowerNeg;
+        }
+
+        m1.setPower(power); //Drives robot to rotate
+        m2.setPower(-power);
+        m3.setPower(power);
+        m4.setPower(-power);
     }
 
     /**
      * Positive = Right
      **/
     public void setStrafePower(double power, double turn) {
-        m1.setPower(power - turn); //Sets motor 1 power to -0.1 to make the robot move backward
-        m2.setPower(-power + turn); //Sets motor 2 power to -0.1 to make the robot move backward
-        m3.setPower(-power - turn); //Sets motor 3 power to -0.1 to make the robot move backward
-        m4.setPower(power + turn); //Sets motor 4 power to -0.1 to make the robot move backward
+
+        //Unless power is 0, set power to at least some minimum
+        if (power < minPowerPos && power > 0) {
+            power = minPowerPos;
+        } else if (power > minPowerNeg && power < 0) {
+            power = minPowerNeg;
+        }
+
+        m1.setPower(power - turn); //Drives robot to strafe left or right, availability for turn variable
+        m2.setPower(-power + turn);
+        m3.setPower(-power - turn);
+        m4.setPower(power + turn);
     }
 
-    double rangeCheckClose = 25;
-    double rangeCheckFar = 35;
+    double rangeCheckClose = 25; //Variables for range check
+    double rangeCheckFar = 40;
 
-    public boolean columnRangeCheckNeeded(double rangeCM2) {
+    public boolean columnRangeCheckNeeded(double rangeCM2) { //Checks to see if robot is too close or far from cryptobox
         return (rangeCM2 <= rangeCheckClose || rangeCM2 >= rangeCheckFar);
     }
 
-    float leftposition = 85; //Variable for left column positioning
-    float ceterposition = 71; //Variable for center column positioning
-    float rightposition = 52; //Variable for right column positioning
+    float leftposition = 77; //Variable for left column positioning
+    float centerposition = 61; //Variable for center column positioning
+    float rightposition = 44; //Variable for right column positioning
 
-    double lefttolerance = 1.1; //Variable for left column tolerance
-    double centertolerance = 1.1; //Variable for center column tolerance
-    double righttolerance = 1.1; //Variable for right column tolerance
+    double lefttolerance = 1.1; //Variables for column tolerances
+    double centertolerance = 1.1;
+    double righttolerance = 1.1;
 
     @Override
-    public void runOpMode() {
+    public void runOpMode() { //Beginning of main loop
 
-        m1 = hardwareMap.dcMotor.get("m1"); //Sets m1 to m1 in the config
-        m2 = hardwareMap.dcMotor.get("m2"); //Sets m2 to m2 in the config
-        m3 = hardwareMap.dcMotor.get("m3"); //Sets m3 to m3 in the config
-        m4 = hardwareMap.dcMotor.get("m4"); //Sets m4 to m4 in the config
-        m5 = hardwareMap.dcMotor.get("m5"); //Sets m5 to m5 in the config
-        m6 = hardwareMap.dcMotor.get("m6"); //Sets m6 to m6 in the config
+        m1 = hardwareMap.dcMotor.get("m1"); //Sets motors in the config
+        m2 = hardwareMap.dcMotor.get("m2");
+        m3 = hardwareMap.dcMotor.get("m3");
+        m4 = hardwareMap.dcMotor.get("m4");
+        m5 = hardwareMap.dcMotor.get("m5");
+        m6 = hardwareMap.dcMotor.get("m6");
+        m7 = hardwareMap.dcMotor.get("m7");
 
-        s1 = hardwareMap.servo.get("s1"); //Sets s1 in the config
-        s2 = hardwareMap.servo.get("s2"); //Sets s2 in the config
-        s3 = hardwareMap.servo.get("s3"); //Sets s3 in the config
-        s4 = hardwareMap.servo.get("s4"); //Sets s4 in the config
-        s5 = hardwareMap.servo.get("s5"); //Sets s5 in the config
-        s6 = hardwareMap.servo.get("s6"); //Sets s6 in the config
+        s1 = hardwareMap.servo.get("s1"); //Sets servos in the config
+        s2 = hardwareMap.servo.get("s2");
+        s3 = hardwareMap.servo.get("s3");
+        s4 = hardwareMap.servo.get("s4");
+        s5 = hardwareMap.servo.get("s5");
+        s6 = hardwareMap.servo.get("s6");
 
         m1.setDirection(DcMotor.Direction.REVERSE); //Sets m1 to reverse mode
         m3.setDirection(DcMotor.Direction.REVERSE); //Sets m3 to reverse mode
 
-        modernRoboticsI2cGyro = hardwareMap.get(ModernRoboticsI2cGyro.class, "gyro");
+        modernRoboticsI2cGyro = hardwareMap.get(ModernRoboticsI2cGyro.class, "gyro"); //Configures gyro, port 6
         gyro = (IntegratingGyroscope) modernRoboticsI2cGyro;
 
         c1 = hardwareMap.colorSensor.get("c1"); //Sets colorSensor to c1 in the config, Port 5
@@ -210,13 +237,11 @@ public class NewRedFar extends AutoSteps {
         r4.setI2cAddress(I2cAddr.create8bit(0x28));
 
         runtime = new ElapsedTime(); //Creates runtime variable for using time
-        checkTime = new ElapsedTime(); //Creates runtime variable for using time
 
         s1.setPosition(0); //Pulls jewel appendage against side of robot
-        s2.setPosition(0);
-        s3.setPosition(1); //Closes left arm crunch servo
-        s4.setPosition(1); //Closes right arm crunch servo
-        s5.setPosition(0);
+        s2.setPosition(1); //Closes relic claw
+        s3.setPosition(0); //Sets arm crunch servo to open
+        s4.setPosition(1); //Sets Arm Crunch servo to open
         s6.setPosition(0.5); //Sets arm extension to not move
 
         modernRoboticsI2cGyro.calibrate(); //Gyro calibration
@@ -252,7 +277,7 @@ public class NewRedFar extends AutoSteps {
         relicTemplate.setName("relicVuMarkTemplate"); // can help in debugging; otherwise not necessary
         relicTrackables.activate();
 
-        telemetry.addData(">", "Vuforia Initialized. Press play."); //Adds telemetry
+        telemetry.addData("Vuforia Initialized. Press play.", ""); //Adds telemetry
         telemetry.update(); //Updates telemetry
 
         steps CURRENT_STEP = steps.SCANIMAGE; //Sets the variable CURRENT_STEP to the first step in the sequence
@@ -287,6 +312,8 @@ public class NewRedFar extends AutoSteps {
         double rCM2Curr = 0; //Initializes variable to track current range 2 reading
         double rCM4Curr = 0; //Initializes variable to track current range 4 reading
 
+        runtime.reset();
+
         while (opModeIsActive()) { //Loop for op mode
 
             rCM1Curr = r1.getDistance(DistanceUnit.CM); //Defining variable used in low pass filter
@@ -303,8 +330,8 @@ public class NewRedFar extends AutoSteps {
             }
             rangeCM1 = (rCM1Curr * 0.2) + (rCM1Prev * 0.8); //Updates rangeCM1 variable with low pass filter
             rCM1Prev = rangeCM1; //Updates rCM1Prev variable with info current rangeCM1 variable
-            rangeCM2 = (rCM2Curr * 0.2) + (rCM2Prev * 0.8); //Updates rangeCM1 variable with low pass filter
-            rCM2Prev = rangeCM2; //Updates rCM2Prev variable with info current rangeCM1 variable
+            rangeCM2 = (rCM2Curr * 0.2) + (rCM2Prev * 0.8); //Updates rangeCM2 variable with low pass filter
+            rCM2Prev = rangeCM2; //Updates rCM2Prev variable with info current rangeCM2 variable
             rangeCM4 = (rCM4Curr * 0.2) + (rCM4Prev * 0.8); //Updates rangeCM4 variable with low pass filter
             rCM4Prev = rangeCM4; //Updates rCM4Prev variable with info current rangeCM4 variable
             integratedZ = modernRoboticsI2cGyro.getIntegratedZValue(); //Gyro integratedZ value
@@ -323,7 +350,7 @@ public class NewRedFar extends AutoSteps {
             //Start of switch statement//
             /////////////////////////////
 
-            switch (CURRENT_STEP) { //Beginning of the switch- this sets the current step to whatever CURRENT_STEP is set to
+            switch (CURRENT_STEP) { //Beginning of the switch. this sets the current step to whatever CURRENT_STEP is set to
 
                 ///////////////////////
                 //START OF MAIN STEPS//
@@ -333,22 +360,28 @@ public class NewRedFar extends AutoSteps {
 
                     RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate); //Image scanning
 
-                    s3.setPosition(1); //Closes left arm crunch servo
-                    s4.setPosition(1); //Closes right arm crunch servo
+                    s3.setPosition(0.35); //Closes arm crunch
+                    s4.setPosition(0.7);
 
-                    if (vuMark == RelicRecoveryVuMark.LEFT) { //Vuforia for left pictograph
+                    if (runtime.seconds() < 0.5) { //Activates motor to raise glyph
+                        m7.setPower(-0.5);
+                    } else {
+                        m7.setPower(0);
+                    }
+
+                    if (vuMark == RelicRecoveryVuMark.LEFT && runtime.seconds() > 1.5) { //Vuforia for left pictograph
                         image = 1;
                         CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                         break; //Exits switch statement
                     }
 
-                    if (vuMark == RelicRecoveryVuMark.CENTER) { //Vuforia for center pictograph
+                    if (vuMark == RelicRecoveryVuMark.CENTER && runtime.seconds() > 1.5) { //Vuforia for center pictograph
                         image = 2;
                         CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                         break; //Exits switch statement
                     }
 
-                    if (vuMark == RelicRecoveryVuMark.RIGHT) { //Vuforia for right pictograph
+                    if (vuMark == RelicRecoveryVuMark.RIGHT && runtime.seconds() > 1.5) { //Vuforia for right pictograph
                         image = 3;
                         CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                         break; //Exits switch statement
@@ -360,7 +393,7 @@ public class NewRedFar extends AutoSteps {
 
                 case LOWERSERVO: //Beginning of the case statement LOWERSERVO
 
-                    setDrivePower(0, 0);
+                    setDrivePower(0, 0); //Stop robot
 
                     s1.setPosition(0.55); //Sets servo 1 position to 0.55 (lowers jewel arm)
                     runtime.reset(); //Resets the runtime
@@ -382,18 +415,12 @@ public class NewRedFar extends AutoSteps {
                     }
 
                     if (c1.red() == c1.blue() && c1.red() == 0 && runtime.seconds() > 1) {
-                        s1.setPosition(0); //Sets servo 1 position to 0 (raises jewel arm)
-                        CURRENT_STEP = steps.RAISESERVO;
-                    }
-
-                    if (runtime.seconds() < .4) { //Activates servo to raise glyph
-                        m7.setPower(0.2);
-                    } else {
-                        m7.setPower(0);
+                        s1.setPosition(0); //Raises jewel arm
+                        CURRENT_STEP = steps.RAISESERVO; //Changes step to RAISESERVO
                     }
 
                     if (runtime.seconds() > .5) {
-                        s1.setPosition(0.65); //Sets servo 1 position to 0.65 (continues to lower jewel arm)
+                        s1.setPosition(0.65); //Continues to lower jewel arm
                     }
                     break; //Exits switch statement
 
@@ -404,23 +431,22 @@ public class NewRedFar extends AutoSteps {
                         CURRENT_STEP = steps.KNOCKFORWARDS; //Changes step to KNOCKFORWARDS
                         break; //Exits switch statement
                     }
-                    setDrivePower(0.1, 0);
-                    s4.setPosition(0.52); //Sets servo 4 position to 0.52 (stops glyph from lifting)
+                    setDrivePower(0.1, 0); //Drive forward without using gyro
                     break; //Exits switch statement
 
                 case KNOCKFORWARDS: //Beginning of case statement KNOCKFORWARDS
 
                     if (runtime.seconds() > 0.5) {
-                        setDrivePower(0, 0);
+                        setDrivePower(0, 0); //Stops robot
                         CURRENT_STEP = steps.RAISESERVO; //Changes step to RAISESERVO
                         break; //Exits switch statement
                     }
-                    setDrivePower(-0.1, 0);
+                    setDrivePower(-0.1, 0); //Drive backward without using gyro
                     break; //Exits switch statement
 
                 case RAISESERVO: //Beginning of the case statement RAISESERVO
 
-                    setDrivePower(0, 0);
+                    setDrivePower(0, 0); //Stops robot
                     s1.setPosition(0); //Sets servo 1 position to 0 (raises jewel arm)
                     runtime.reset(); //Resets the runtime
                     CURRENT_STEP = steps.DRIVETOCRYPTOBOX; //Changes step to DRIVETOCRYPTOBOX
@@ -428,23 +454,24 @@ public class NewRedFar extends AutoSteps {
 
                 case DRIVETOCRYPTOBOX: //Beginning of the case statement DRIVETOCRYPTOBOX
 
-                    if (rangeCM4 < 55) { //Moves backward until wall
-                        setDrivePower(0, 0);
+                    if (rangeCM4 < 60) { //Moves backward until wall
+                        setDrivePower(0, 0); //Stops robot
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.ROTATE; //Changes step to ROTATE
                     }
-                    setDrivePower(-0.1, 0);
+                    setDrivePower(-0.12, 0); //Drives backward without using gyro
                     s1.setPosition(0); //Sets servo 1 position to 0 (raises jewel arm)
+
                     break; //Exits switch statement
 
                 case ROTATE: //Beginning of the case statement ROTATE
 
                     if (integratedZ < -140) { //Rotates robot to the left about 140 degrees
-                        setDrivePower(0, 0);
+                        setDrivePower(0, 0); //Stops robot
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.BACKUP; //Changes step to BACKUP
                     }
-                    setRotationPower(-0.18);
+                    setRotationPower(-0.23); //Rotates counterclockwise
                     s1.setPosition(0); //Sets servo 1 position to 0 (raises jewel arm)
                     break; //Exits switch statement
 
@@ -452,10 +479,16 @@ public class NewRedFar extends AutoSteps {
 
                     straight = -180; //Sets gyro variable to -180
 
-                    turn = (integratedZ - straight) / 50;
+                    if (integratedZ > straight) { //Changes turn variable
+                        turn = .1;
+                    } else if (integratedZ < straight) {
+                        turn = -.1;
+                    } else {
+                        turn = 0;
+                    }
 
-                    if (rangeCM2 > 30) { //Moves the robot backward for 0.6 seconds
-                        setDrivePower(0, turn);
+                    if (rangeCM2 > 40) { //If at desired range
+                        setDrivePower(0, turn); //Stop, adjust orientation
                         if (image == 1) {
                             CURRENT_STEP = steps.LEFTCOLUMN; //Changes step to LEFTCOLUMN
                             runtime.reset(); //Resets the runtime
@@ -470,136 +503,153 @@ public class NewRedFar extends AutoSteps {
                         }
                         break; //Exits switch statement
                     }
-                    setDrivePower(-0.1, turn);
+                    setDrivePower(-0.1, turn); //Drives backwards with gyro
                     break; //Exits switch statement
 
-                case LEFTCOLUMN: //Beginning of the case statement LEFTCOLUMN (Target position: 86 cm)
+                case LEFTCOLUMN: //Beginning of the case statement LEFTCOLUMN
 
                     //Exponential regression equation to decrease speed as we approach target position
-                    speed = (Math.pow(0.9841381234, rangeCM1)) * 0.7;
+                    speed = ((Math.pow(rangeCM1 - leftposition, 2)) / 5000) + .15;
 
                     straight = -180; //Sets gyro variable to -180
 
-                    turn = (integratedZ - straight) / 50;
+                    if (integratedZ > straight) { //Changes turn variable
+                        turn = .08;
+                    } else if (integratedZ < straight) {
+                        turn = -.08;
+                    } else {
+                        turn = 0;
+                    }
 
-                    if (columnRangeCheckNeeded(rangeCM2)) {
+                    if (columnRangeCheckNeeded(rangeCM2)) { //Checks range from cryptobox
                         CURRENT_STEP = steps.POSITIONCHECK;
                         break;
-                    } else {
+                    } else { //If in range
 
-                        if (runtime.seconds() > 1 && rangeCM1 >= (leftposition - lefttolerance) && rangeCM1 <= (leftposition + lefttolerance) && integratedZ <= -178
-                                && integratedZ >= -182) { //If in range and runtime is past 1 second
-                            setDrivePower(0, 0);
-                            CURRENT_STEP = steps.STOP; //Changes step to FORWARD
+                        if (runtime.seconds() > 1 && rangeCM1 >= (leftposition - lefttolerance) && rangeCM1 <= (leftposition + lefttolerance) && integratedZ <= -178 && integratedZ >= -182) { //If in range and runtime is past 1 second
+                            setDrivePower(0, 0); //Stops robot
+                            CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
                             break; //Exits switch statement
                         } else if (rangeCM1 >= (leftposition - lefttolerance) && rangeCM1 <= (leftposition + lefttolerance)) { //If in range
                             if (integratedZ <= -178 && integratedZ >= -182) { //If in range and in angle
-                                setDrivePower(0, 0);
+                                setDrivePower(0, 0); //Stops robot
                                 break; //Exits switch statement
                             } else { //If in range but outside angle
-                                setRotationPower(-turn * 2);
+                                setRotationPower(-turn); //Rotates robot
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             }
                         } else { //If outside range
                             if (rangeCM1 < (leftposition - lefttolerance)) { //If too close to wall
-                                setStrafePower(-speed, turn);
+                                setStrafePower(-speed, turn); //Strafes left and rotates
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             } else { //If too far from wall
-                                setStrafePower(0.18, turn);
+                                setStrafePower(0.23, turn); //Strafes right and rotates
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             }
                         }
                     }
 
-                case CENTERCLOMUN: //Beginning of the case statement CENTERCLOMUN (Target position: 70 cm)
+                case CENTERCLOMUN: //Beginning of the case statement CENTERCLOMUN
 
                     //Exponential regression equation to decrease speed as we approach target position
-                    speed = (Math.pow(0.9799308653, rangeCM1)) * .7;
+                    speed = ((Math.pow(rangeCM1 - (centerposition + 20), 2)) / 5000) + .15;
 
                     straight = -180; //Sets gyro variable to -180
 
-                    turn = (integratedZ - straight) / 50;
+                    if (integratedZ > straight) { //Changes turn variable
+                        turn = .08;
+                    } else if (integratedZ < straight) {
+                        turn = -.08;
+                    } else {
+                        turn = 0;
+                    }
 
-                    if (columnRangeCheckNeeded(rangeCM2)) {
+                    if (columnRangeCheckNeeded(rangeCM2)) { //Checks range from cryptobox
                         CURRENT_STEP = steps.POSITIONCHECK;
                         break;
-                    } else {
+                    } else { //If in range
 
-                        if (runtime.seconds() > 1 && rangeCM1 >= (ceterposition - centertolerance) && rangeCM1 <= (ceterposition + centertolerance) && integratedZ <= -178
+                        if (runtime.seconds() > 1 && rangeCM1 >= (centerposition - centertolerance) && rangeCM1 <= (centerposition + centertolerance) && integratedZ <= -178
                                 && integratedZ >= -182) { //If checkPosition runtime is past 1 second
-                            setDrivePower(0, 0);
-                            CURRENT_STEP = steps.STOP; //Changes step to FORWARD
+                            setDrivePower(0, 0); //Stops robot
+                            CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
                             break; //Exits switch statement
-                        } else if (rangeCM1 >= (ceterposition - centertolerance) && rangeCM1 <= (ceterposition + centertolerance)) { //If in range
+                        } else if (rangeCM1 >= (centerposition - centertolerance) && rangeCM1 <= (centerposition + centertolerance)) { //If in range
                             if (integratedZ <= -178 && integratedZ >= -182) { //If in range and in angle
-                                setDrivePower(0, 0);
+                                setDrivePower(0, 0); //Stops robot
                                 break; //Exits switch statement
                             } else { //If in range but outside angle
-                                setRotationPower(-turn * 2);
+                                setRotationPower(-turn); //Rotates robot
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             }
                         } else { //If outside range
-                            if (rangeCM1 < (ceterposition - centertolerance)) { //If too close to wall
-                                setStrafePower(-speed, turn);
+                            if (rangeCM1 < (centerposition - centertolerance)) { //If too close to wall
+                                setStrafePower(-speed, turn); //Strafes left and rotates
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             } else { //If too far from wall
-                                setStrafePower(0.18, turn);
+                                setStrafePower(0.23, turn); //Strafes right and rotates
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             }
                         }
                     }
 
-                case RIGHTCOLUMN: //Beginning of the case statement RIGHTCOLUMN (Target position: 54 cm)
+                case RIGHTCOLUMN: //Beginning of the case statement RIGHTCOLUMN
 
                     //Exponential regression equation to decrease speed as we approach target position
-                    speed = (Math.pow(0.9852338678, rangeCM1) * 0.4);
+                    speed = ((Math.pow(rangeCM1 - (rightposition + 20), 2)) / 5000) + .15;
 
                     straight = -180; //Sets gyro variable to -180
 
-                    turn = (integratedZ - straight) / 50;
+                    if (integratedZ > straight) { //Changes turn variable
+                        turn = .08;
+                    } else if (integratedZ < straight) {
+                        turn = -.08;
+                    } else {
+                        turn = 0;
+                    }
 
-                    if (columnRangeCheckNeeded(rangeCM2)) {
+                    if (columnRangeCheckNeeded(rangeCM2)) { //Checks range from cryptobox
                         CURRENT_STEP = steps.POSITIONCHECK;
                         break;
-                    } else {
+                    } else { //If in range
 
                         if (runtime.seconds() > 1 && rangeCM1 >= (rightposition - righttolerance) && rangeCM1 <= (rightposition + righttolerance) && integratedZ <= -178
                                 && integratedZ >= -182) { //If checkPosition runtime is past 1 second
-                            setDrivePower(0, 0);
-                            CURRENT_STEP = steps.STOP; //Changes step to FORWARD
+                            setDrivePower(0, 0); //Stops robot
+                            CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
                             break; //Exits switch statement
                         } else if (rangeCM1 >= (rightposition - righttolerance) && rangeCM1 <= (rightposition + righttolerance)) { //If in range
                             if (integratedZ <= -178 && integratedZ >= -182) { //If in range and in angle
-                                setDrivePower(0, 0);
+                                setDrivePower(0, 0); //Stops robot
                                 break; //Exits switch statement
                             } else { //If in range but outside angle
-                                setRotationPower(-turn * 2);
+                                setRotationPower(-turn); //Rotates robot
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             }
                         } else { //If outside range
                             if (rangeCM1 < (rightposition - righttolerance)) { //If too close to wall
-                                setStrafePower(-speed, turn);
+                                setStrafePower(-speed, turn); //Strafes left and rotates
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             } else { //If too far from wall
-                                setStrafePower(0.18, turn);
+                                setStrafePower(0.23, turn); //Strafes right and rotates
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             }
                         }
                     }
 
-                case POSITIONCHECK: //Beginning of the case statement BACKUP
+                case POSITIONCHECK: //Beginning of the case statement POSITIONCHECK
 
-                    if (!columnRangeCheckNeeded(rangeCM2)) { //Moves the robot backward for 0.6 seconds
-                        setDrivePower(0, 0);
+                    if (!columnRangeCheckNeeded(rangeCM2)) { //Checks if robot is too close or far from cryptobox
+                        setDrivePower(0, 0); //Stops robot
                         if (image == 1) {
                             CURRENT_STEP = steps.LEFTCOLUMN; //Changes step to LEFTCOLUMN
                             runtime.reset(); //Resets the runtime
@@ -615,71 +665,71 @@ public class NewRedFar extends AutoSteps {
                         break; //Exits switch statement
                     }
 
-                    if (rangeCM2 < 30) {
-                        setDrivePower(-0.1, 0);
-                    } else {
-                        setDrivePower(0.1, 0);
+                    if (rangeCM2 < rangeCheckClose) { //If robot is too close
+                        setDrivePower(-0.1, 0); //Drive backward without using gyro
+                    } else { //If robot is too far
+                        setDrivePower(0.1, 0); //Drive forward without using gyro
                     }
 
                     break; //Exits switch statement
 
                 case FORWARD: //Beginning of the case statement FORWARD
 
-                    if (runtime.seconds() > 2) { //Moves the robot forward for 2 seconds
-                        setDrivePower(0, 0);
+                    if (runtime.seconds() > 2.5) { //Runs for 2.5 seconds
+                        setDrivePower(0, 0); //Stops robot
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.DROP; //Changes step to DROP
                         break; //Exits switch statement
                     }
-                    setDrivePower(0.1, 0);
+                    setDrivePower(0.1, 0); //Drive forward without using gyro
                     break; //Exits switch statement
 
                 case DROP: //Beginning of the case statement DROP
 
-                    s3.setPosition(0.5); //Opens left arm crunch servo
-                    s4.setPosition(0.5); //Opens right arm crunch servo
-                    setDrivePower(0, 0);
+                    s3.setPosition(0); //Opens left arm crunch servo
+                    s4.setPosition(1); //Opens right arm crunch servo
+                    setDrivePower(0, 0); //Stops robot
                     runtime.reset(); //Resets the runtime
                     CURRENT_STEP = steps.BACK; //Changes step to BACK
                     break; //Exits switch statement
 
                 case BACK: //Beginning of the case statement BACK
 
-                    if (runtime.seconds() > 0.5) { //Moves the robot backward for 0.5 seconds
-                        setDrivePower(0, 0);
+                    if (runtime.seconds() > 0.5) { //Runs for 0.5 seconds
+                        setDrivePower(0, 0); //Stops robot
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.FORWARD2; //Changes step to FORWARD2
                         break; //Exits switch statement
                     }
-                    setDrivePower(-0.1, 0);
+                    setDrivePower(-0.1, 0); //Drives robot backwards without using gyro
                     break; //Exits switch statement
 
                 case FORWARD2: //Beginning of the case statement FORWARD2
 
-                    if (runtime.seconds() > 0.5) { //Moves the robot forward for 0.5 seconds
-                        setDrivePower(0, 0);
+                    if (runtime.seconds() > 1) { //Runs for 1 second
+                        setDrivePower(0, 0); //Stops robot
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.BACK2; //Changes step to BACK2
                         break; //Exits switch statement
                     }
-                    setDrivePower(0.2, 0);
+                    setDrivePower(0.2, 0); //Drives forward without using gyro
                     break; //Exits switch statement
 
                 case BACK2: //Beginning of the case statement BACK2
 
-                    if (runtime.seconds() > 0.3) { //Moves the robot backward for 0.3 seconds
-                        setDrivePower(0, 0);
+                    if (runtime.seconds() > 0.5) { //Runs for 0.5 seconds
+                        setDrivePower(0, 0); //Stops robot
                         runtime.reset(); //Resets the runtime
                         CURRENT_STEP = steps.STOP; //Changes step to STOP
                         break; //Exits switch statement
                     }
-                    setDrivePower(-0.1, 0);
+                    setDrivePower(-0.1, 0); //Drives backward without using gyro
                     break; //Exits switch statement
 
                 case STOP: //Beginning of the case statement STOP
-                    setDrivePower(0, 0);
+                    setDrivePower(0, 0); //Stops robot
                     break; //Exits switch statement
             }
         }
     }
-}
+} //Ends all loops
