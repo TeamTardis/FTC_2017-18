@@ -12,6 +12,9 @@ public class AutoSteps extends LinearOpMode { //Extends LinearOpMode for autonom
         SENSECOLOR, //Determines whether one jewel is red or blue
         KNOCKFORWARDS, //Knocks in direction of relic recovery zone
         KNOCKBACK, //Knocks away from relic recovery zone
+        MOVE_CLOSER,
+        RECOVER,
+        MOVE_FARTHER,
         RAISESERVO, //Retracts jewel appendage
         DRIVETOCRYPTOBOX, //Drives towards cryptobox
         ROTATE, //Used only in RedFar, rotates to face cryptobox

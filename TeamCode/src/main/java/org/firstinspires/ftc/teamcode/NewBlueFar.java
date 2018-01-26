@@ -177,20 +177,22 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
         m4.setPower(power + turn);
     }
 
-    double rangeCheckClose = 25; //Variables for range check
-    double rangeCheckFar = 40;
+    double rangeCheckClose = 35; //Variables for range check
+    double rangeCheckFar = 45;
 
     public boolean columnRangeCheckNeeded(double rangeCM2) { //Checks to see if robot is too close or far from cryptobox
         return (rangeCM2 <= rangeCheckClose || rangeCM2 >= rangeCheckFar);
     }
 
-    float leftposition = 58; //Variable for left column positioning
-    float centerposition = 75; //Variable for center column positioning
-    float rightposition = 93; //Variable for right column positioning
+    float leftposition = 56; //Variable for left column positioning
+    float centerposition = 73; //Variable for center column positioning
+    float rightposition = 86; //Variable for right column positioning
 
     double lefttolerance = 1.1; //Variables for column tolerances
     double centertolerance = 1.1;
     double righttolerance = 1.1;
+
+    double gyroTolerance = 2;
 
     @Override
     public void runOpMode() { //Beginning of main loop
@@ -237,6 +239,7 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
         r4.setI2cAddress(I2cAddr.create8bit(0x28));
 
         runtime = new ElapsedTime(); //Creates runtime variable for using time
+        checkTime = new ElapsedTime(); //Creates checkTime variable for using time
 
         s1.setPosition(0); //Pulls jewel appendage against side of robot
         s2.setPosition(1); //Closes relic claw
@@ -313,6 +316,8 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
         double rCM4Curr = 0; //Initializes variable to track current range 4 reading
 
         runtime.reset();
+        checkTime.reset();
+
 
         while (opModeIsActive()) { //Loop for op mode
 
@@ -361,32 +366,30 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
                     RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate); //Image scanning
 
                     s3.setPosition(0.35); //Closes arm crunch
-                    s4.setPosition(0.7);
-
-                    if (runtime.seconds() < 0.5) { //Activates motor to raise glyph
-                        m7.setPower(-0.5);
-                    } else {
-                        m7.setPower(0);
-                    }
+                    s4.setPosition(0.58);
 
                     if (vuMark == RelicRecoveryVuMark.LEFT && runtime.seconds() > 1.5) { //Vuforia for left pictograph
                         image = 1;
+                        runtime.reset();
                         CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                         break; //Exits switch statement
                     }
 
                     if (vuMark == RelicRecoveryVuMark.CENTER && runtime.seconds() > 1.5) { //Vuforia for center pictograph
                         image = 2;
+                        runtime.reset();
                         CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                         break; //Exits switch statement
                     }
 
                     if (vuMark == RelicRecoveryVuMark.RIGHT && runtime.seconds() > 1.5) { //Vuforia for right pictograph
                         image = 3;
+                        runtime.reset();
                         CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                         break; //Exits switch statement
                     } else if (image == 0 && runtime.seconds() > 3) { //If we don't scan the image
                         image = 2;
+                        runtime.reset();
                         CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                     }
                     break; //Exits switch statement
@@ -395,9 +398,18 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
 
                     setDrivePower(0, 0); //Stop robot
 
+                    if (runtime.seconds() > 0.3 && runtime.seconds() < 0.8) { //Activates motor to raise glyph
+                        m7.setPower(-0.5);
+                    } else {
+                        m7.setPower(0);
+                    }
+
+                    if(runtime.seconds() > 0.8) {
+                        runtime.reset(); //Resets the runtime
+                        CURRENT_STEP = steps.SENSECOLOR; //Changes step to SENSECOLOR
+                    }
+
                     s1.setPosition(0.55); //Sets servo 1 position to 0.55 (lowers jewel arm)
-                    runtime.reset(); //Resets the runtime
-                    CURRENT_STEP = steps.SENSECOLOR; //Changes step to SENSECOLOR
                     break; //Exits switch statement
 
                 case SENSECOLOR: //Beginning of case statement SENSECOLOR
@@ -466,7 +478,7 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
 
                 case BACKUP: //Beginning of the case statement BACKUP
 
-                    straight = 0; //Sets gyro variable to 0
+                    straight = 1; //Sets gyro variable to 0
 
                     if (integratedZ > straight) { //Changes turn variable
                         turn = .1;
@@ -498,14 +510,14 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
                 case LEFTCOLUMN: //Beginning of the case statement LEFTCOLUMN
 
                     //Exponential regression equation to decrease speed as we approach target position
-                    speed = ((Math.pow(rangeCM3 - leftposition, 2)) / 5000) + .18;
+                    speed = ((Math.pow(rangeCM3 - leftposition, 2)) / 5000) + .21;
 
-                    straight = 0; //Sets gyro variable to 0
+                    straight = 1; //Sets gyro variable to 0
 
                     if (integratedZ > straight) { //Changes turn variable
-                        turn = .08;
+                        turn = .1;
                     } else if (integratedZ < straight) {
-                        turn = -.08;
+                        turn = -.1;
                     } else {
                         turn = 0;
                     }
@@ -515,12 +527,12 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
                         break;
                     } else { //If in range
 
-                        if (runtime.seconds() > 1 && rangeCM3 >= (leftposition - lefttolerance) && rangeCM3 <= (leftposition + lefttolerance) && integratedZ <= 2 && integratedZ >= -2) { //If in range and runtime is past 1 second
+                        if (runtime.seconds() > 1 && rangeCM3 >= (leftposition - lefttolerance) && rangeCM3 <= (leftposition + lefttolerance) && integratedZ <= (straight + gyroTolerance) && integratedZ >= (straight - gyroTolerance) || checkTime.seconds() > 25) { //If in range and runtime is past 1 second
                             setDrivePower(0, 0); //Stops robot
                             CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
                             break; //Exits switch statement
                         } else if (rangeCM3 >= (leftposition - lefttolerance) && rangeCM3 <= (leftposition + lefttolerance)) { //If in range
-                            if (integratedZ <= 2 && integratedZ >= -2) { //If in range and in angle
+                            if (integratedZ <= (straight + gyroTolerance) && integratedZ >= (straight - gyroTolerance)) { //If in range and in angle
                                 setDrivePower(0, 0); //Stops robot
                                 break; //Exits switch statement
                             } else { //If in range but outside angle
@@ -534,7 +546,7 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             } else { //If too far from wall
-                                setStrafePower(-0.23, turn); //Strafes left and rotates
+                                setStrafePower(-0.26, turn); //Strafes left and rotates
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             }
@@ -544,14 +556,14 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
                 case CENTERCLOMUN: //Beginning of the case statement CENTERCLOMUN
 
                     //Exponential regression equation to decrease speed as we approach target position
-                    speed = ((Math.pow(rangeCM3 - (centerposition + 15), 2)) / 5000) + .10;
+                    speed = ((Math.pow(rangeCM3 - (centerposition + 15), 2)) / 5000) + .13;
 
-                    straight = 0; //Sets gyro variable to 0
+                    straight = 1; //Sets gyro variable to 0
 
                     if (integratedZ > straight) { //Changes turn variable
-                        turn = .08;
+                        turn = .1;
                     } else if (integratedZ < straight) {
-                        turn = -.08;
+                        turn = -.1;
                     } else {
                         turn = 0;
                     }
@@ -561,13 +573,12 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
                         break;
                     } else { //If in range
 
-                        if (runtime.seconds() > 1 && rangeCM3 >= (centerposition - centertolerance) && rangeCM3 <= (centerposition + centertolerance) && integratedZ <= 2
-                                && integratedZ >= -2) { //If checkPosition runtime is past 1 second
+                        if (runtime.seconds() > 1 && rangeCM3 >= (centerposition - centertolerance) && rangeCM3 <= (centerposition + centertolerance) && integratedZ <= (straight + gyroTolerance) && integratedZ >= (straight - gyroTolerance) || checkTime.seconds() > 25) { //If checkPosition runtime is past 1 second
                             setDrivePower(0, 0); //Stops robot
                             CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
                             break; //Exits switch statement
                         } else if (rangeCM3 >= (centerposition - centertolerance) && rangeCM3 <= (centerposition + centertolerance)) { //If in range
-                            if (integratedZ <= 2 && integratedZ >= -2) { //If in range and in angle
+                            if (integratedZ <= (straight + gyroTolerance) && integratedZ >= (straight - gyroTolerance)) { //If in range and in angle
                                 setDrivePower(0, 0); //Stops robot
                                 break; //Exits switch statement
                             } else { //If in range but outside angle
@@ -581,7 +592,7 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             } else { //If too far from wall
-                                setStrafePower(-0.24, turn); //Strafes left and rotates
+                                setStrafePower(-0.26, turn); //Strafes left and rotates
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             }
@@ -590,14 +601,14 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
                 case RIGHTCOLUMN: //Beginning of the case statement RIGHTCOLUMN
 
                     //Exponential regression equation to decrease speed as we approach target position
-                    speed = ((Math.pow(rangeCM3 - (rightposition + 5), 2)) / 5000) + .1;
+                    speed = ((Math.pow(rangeCM3 - (rightposition + 5), 2)) / 5000) + .4;
 
-                    straight = 0; //Sets gyro variable to 0
+                    straight = 1; //Sets gyro variable to 0
 
                     if (integratedZ > straight) { //Changes turn variable
-                        turn = .08;
+                        turn = .1;
                     } else if (integratedZ < straight) {
-                        turn = -.08;
+                        turn = -.1;
                     } else {
                         turn = 0;
                     }
@@ -607,13 +618,12 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
                         break;
                     } else { //If in range
 
-                        if (runtime.seconds() > 1 && rangeCM3 >= (rightposition - righttolerance) && rangeCM3 <= (rightposition + righttolerance) && integratedZ <= 2
-                                && integratedZ >= -2) { //If checkPosition runtime is past 1 second
+                        if (runtime.seconds() > 1 && rangeCM3 >= (rightposition - righttolerance) && rangeCM3 <= (rightposition + righttolerance) && integratedZ <= (straight + gyroTolerance) && integratedZ >= (straight - gyroTolerance) || checkTime.seconds() > 25) { //If checkPosition runtime is past 1 second
                             setDrivePower(0, 0); //Stops robot
                             CURRENT_STEP = steps.FORWARD; //Changes step to FORWARD
                             break; //Exits switch statement
                         } else if (rangeCM3 >= (rightposition - righttolerance) && rangeCM3 <= (rightposition + righttolerance)) { //If in range
-                            if (integratedZ <= 2 && integratedZ >= -2) { //If in range and in angle
+                            if (integratedZ <= (straight + gyroTolerance) && integratedZ >= (straight - gyroTolerance)) { //If in range and in angle
                                 setDrivePower(0, 0); //Stops robot
                                 break; //Exits switch statement
                             } else { //If in range but outside angle
@@ -627,7 +637,7 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             } else { //If too far from wall
-                                setStrafePower(-0.23, turn); //Strafes left and rotates
+                                setStrafePower(-0.26, turn); //Strafes left and rotates
                                 runtime.reset(); //Resets the runtime
                                 break; //Exits switch statement
                             }

@@ -34,6 +34,7 @@ public abstract class BaseIO_Autonomous extends LinearOpMode {
         RAISESERVO,
         DRIVETOCRYPTOBOX,
         ROTATE,
+        MOVE_CLOSER,
         LEFTCOLUMN,
         CENTERCLOMUN,
         RIGHTCOLUMN,

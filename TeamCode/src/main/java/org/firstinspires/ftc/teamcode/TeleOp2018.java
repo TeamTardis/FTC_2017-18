@@ -1,3 +1,4 @@
+//TeleOp
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -29,7 +30,6 @@ public class TeleOp2018 extends OpMode {
     Servo s2; //Relic Claw servo
     Servo s3; //Arm Crunch A
     Servo s4; //Arm Crunch B
-//    Servo s5; //Second claw grip
     Servo s6; //Arm extension
 
     IntegratingGyroscope gyro; //Gyro
@@ -84,8 +84,8 @@ public class TeleOp2018 extends OpMode {
 
         s1.setPosition(0); //Pulls jewel appendage against side of robot
         s2.setPosition(1); //Opens Relic Claw
-        s3.setPosition(0.4); //Sets Arm Crunch Servo A
-        s4.setPosition(0.6); //Sets Arm Crunch Servo B
+        s3.setPosition(0); //Sets Arm Crunch Servo A
+        s4.setPosition(1); //Sets Arm Crunch Servo B
 //        s5.setPosition(0.5); //Opens 2nd gripper *NOT USED*
         s6.setPosition(0.5); //Sets arm extension to not move
 
@@ -106,9 +106,9 @@ public class TeleOp2018 extends OpMode {
 
         //Controls for Relic Claw (Controller 2)
         if (gamepad2.left_trigger != 0) { //If left trigger is pressed, close claw
-            s2.setPosition(1); //Sets servo position to 1
+            s2.setPosition(0.5); //Sets servo position to 1
         } else { //If not pressed, open claw
-            s2.setPosition(0.5); //Sets servo position to .5
+            s2.setPosition(1); //Sets servo position to .5
         }
 
         //Controls the raising and lower the arm crunch mast. (Controller 2)
@@ -121,16 +121,14 @@ public class TeleOp2018 extends OpMode {
         }
 
         //Controls for rotating arm base (Controller 2)
-        if (gamepad2.right_stick_x < 0.1 || gamepad2.right_stick_x > 0.1) { //If the x axis of right
-            // stick is pressed, move arm base
+        if (gamepad2.right_stick_x < 0.1 || gamepad2.right_stick_x > 0.1) { //If the x axis of right stick is pressed, move arm base
             m6.setPower(gamepad2.right_stick_x / 4); //Sets motor power to 1/4th of joystick speed
         } else { //If the x axis of right stick is not pressed, hold at current position
             m6.setPower(0); //Sets motor power to 0
         }
 
         //Controls for arm raise motor (controller 2)
-        if (gamepad2.right_stick_y < 0.1 || gamepad2.right_stick_y > 0.1) { //If the y axis of left
-            // stick is pressed, raise arm
+        if (gamepad2.right_stick_y < 0.1 || gamepad2.right_stick_y > 0.1) { //If the y axis of left stick is pressed, raise arm
             m5.setPower(-gamepad2.right_stick_y); //Sets motor power to joystick speed
         } else { //If the y axis of left stick is not pressed, hold at current position
             m5.setPower(0); //Sets motor power to 0
@@ -147,14 +145,14 @@ public class TeleOp2018 extends OpMode {
 
         //Controls for arm crunch (Controller 2)
         if (gamepad2.right_trigger != 0) { //If right trigger is pressed, close claw
-            s3.setPosition(0.35); //Sets servo position to 0.35
-            s4.setPosition(0.7); //Sets servo position to 0.7
+            s3.setPosition(0.36); //Sets servo position to 0.36
+            s4.setPosition(0.52); //Sets servo position to 0.58
         } else { //If not pressed, open arm crunch
             s3.setPosition(0); //Sets servo position to 1
-            s4.setPosition(1); //Sets servo position to 1
+            s4.setPosition(0.9); //Sets servo position to 1
         }
 
-        //Controls for drive train (controller 1)
+        //Controls for drive train (Controller 1)
         if (gamepad1.right_trigger == 0) { //Controls for slow mode (default)
             m1.setPower(((LRL + LUD) / 3) + (RLR / 4) - turn); //Steering for top left
             m2.setPower(((LUD - LRL) / 3) - (RLR / 4) + turn); //Steering for top right
