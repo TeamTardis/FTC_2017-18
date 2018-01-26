@@ -58,9 +58,6 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
         m1.setDirection(DcMotor.Direction.REVERSE);
         m3.setDirection(DcMotor.Direction.REVERSE);
 
-        s1.setPosition(1);
-        s2.setPosition(0);
-
         r1reader = hardwareMap.i2cDeviceSynch.get("r1"); //Port 1 (Right side)
         r1 = new ModernRoboticsI2cRangeSensor(r1reader);
         r1.setI2cAddress(I2cAddr.create8bit(0x2a));
@@ -92,7 +89,7 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
     double rangeCM2;
     double rangePrevCM2 = 0;
     float encoderPause;
-    int leftcolumn = 2000;
+    int leftcolumn = 1930;
     int centercolumn = 2000;
     int rightcolumn = 2000;
 
@@ -121,7 +118,7 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
 
             case DRIVE_OFF_BALANCE:
 
-                if (runtime.seconds() > 2.5) {
+                if (runtime.seconds() > 2.7) {
                     m1.setPower(0);
                     m2.setPower(0);
                     m3.setPower(0);
@@ -134,12 +131,12 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
                 m2.setPower(.1);
                 m3.setPower(.1);
                 m4.setPower(.1);
-                s1.setPosition(1);
+                s1.setPosition(0);
                 break;
 
             case BACKWARDS:
 
-                if (runtime.seconds() > 1) {
+                if (runtime.seconds() > 2) {
                     m1.setPower(0);
                     m2.setPower(0);
                     m3.setPower(0);
@@ -154,7 +151,7 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
                 break;
 
             case ENCODER_FORWARDS:
-                if (runtime.seconds() > 1 && runtime.seconds() < 1.5) {
+                if (runtime.seconds() > 2 && runtime.seconds() < 2.5) {
                     encoderPause = m1.getCurrentPosition();
                 }
                 if ((m1.getCurrentPosition() - encoderPause) > leftcolumn) {
@@ -165,7 +162,7 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
                     runtime.reset();
                     CURRENT_STEP = steps.ROTATION;
                     break;
-                } else if (runtime.seconds() > 1.5) {
+                } else if (runtime.seconds() > 2.5) {
                     m1.setPower(.1);
                     m2.setPower(.1);
                     m3.setPower(.1);
@@ -195,13 +192,13 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
 
             case ROTATION2:
 
-                if (modernRoboticsI2cGyro.getIntegratedZValue() < 92 && modernRoboticsI2cGyro.getIntegratedZValue() > 88) {
+                if (modernRoboticsI2cGyro.getIntegratedZValue() < 91 && modernRoboticsI2cGyro.getIntegratedZValue() > 89) {
                     m1.setPower(0);
                     m2.setPower(0);
                     m3.setPower(0);
                     m4.setPower(0);
                     runtime.reset();
-                    CURRENT_STEP = steps.STOP;
+                    CURRENT_STEP = steps.FORWARD;
                     break;
                 } else if (modernRoboticsI2cGyro.getIntegratedZValue() > -178) {
                     m1.setPower(-.07);
@@ -229,13 +226,15 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
                     CURRENT_STEP = steps.DROP; //Changes step to DROP
                     break; //Exits switch statement
                 }
-                setDrivePower(0.1, 0); //Drive forward without using gyro
+                m1.setPower(0.1);
+                m2.setPower(0.1);
+                m3.setPower(0.1);
+                m4.setPower(0.1); //Drive forward without using gyro
                 break; //Exits switch statement
 
             case DROP: //Beginning of the case statement DROP
 
-                s3.setPosition(0); //Opens left arm crunch servo
-                s4.setPosition(1); //Opens right arm crunch servo
+                s1.setPosition(1); //Opens crunch servo
                 m1.setPower(0);
                 m2.setPower(0);
                 m3.setPower(0);
@@ -255,7 +254,10 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
                     CURRENT_STEP = steps.FORWARD2; //Changes step to FORWARD2
                     break; //Exits switch statement
                 }
-                setDrivePower(-0.1, 0); //Drives robot backwards without using gyro
+                m1.setPower(-0.1);
+                m2.setPower(-0.1);
+                m3.setPower(-0.1);
+                m4.setPower(-0.1); //Drives robot backwards without using gyro
                 break; //Exits switch statement
 
             case FORWARD2: //Beginning of the case statement FORWARD2
@@ -269,7 +271,10 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
                     CURRENT_STEP = steps.BACK2; //Changes step to BACK2
                     break; //Exits switch statement
                 }
-                setDrivePower(0.2, 0); //Drives forward without using gyro
+                m1.setPower(0.2);
+                m2.setPower(0.2);
+                m3.setPower(0.2);
+                m4.setPower(0.2);; //Drives forward without using gyro
                 break; //Exits switch statement
 
             case BACK2: //Beginning of the case statement BACK2
