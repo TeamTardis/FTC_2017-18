@@ -101,17 +101,18 @@ public class DriverTesting extends RangeTestBedSteps {
     @Override
     public void loop() {
 
-        telemetry.addData("Step", CURRENT_STEP + "\nSpeed: " + speed + "\nEncoder: " + m1.getCurrentPosition() + "\nEncoder Pause: " + encoderPause); //Adds telemetry to debug
+        double m1m4 = (Math.PI/2.2)*Math.cos((((modernRoboticsI2cGyro.getIntegratedZValue() / 45))/1.28) - 1.6);
+        double m2m3 = (Math.PI/2.2)*Math.cos((((modernRoboticsI2cGyro.getIntegratedZValue() / 45))/1.28) + 1.6);
+
+        telemetry.addData("M1M4: ", m1m4 + "\nM2M3: " + m2m3 + "\nGyro: " + modernRoboticsI2cGyro.getIntegratedZValue() + "\nGyro / 45: " + modernRoboticsI2cGyro.getIntegratedZValue() / 45); //Adds telemetry to debug
         telemetry.update(); //Updates telemetry with new information
 
         rangeCM1 = r1.getDistance(DistanceUnit.CM);
         rangeCM2 = r2.getDistance(DistanceUnit.CM);
 
-        
-
-        m1.setPower(0);
-        m2.setPower(0);
-        m3.setPower(0);
-        m4.setPower(0);
+        m1.setPower(m1m4);
+        m2.setPower(m2m3);
+        m3.setPower(m2m3);
+        m4.setPower(m1m4);
     }
 }

@@ -110,11 +110,12 @@ public class TeleOp2018 extends OpMode {
         //Controls for Relic Claw (Controller 2)
         if (gamepad2.left_trigger != 0) { //If left trigger is pressed, close claw
             s2.setPosition(0.7); //Sets servo position to 1
-            runtime2.reset();
-        } else if (gamepad2.left_trigger == 0 && runtime2.seconds() < 0.5) {
+        } else if (gamepad2.left_trigger != 0 && runtime2.seconds() < 0.5) {
             s2.setPosition(0.6);
+            runtime2.reset();
         } else { //If not pressed, open claw
-            s2.setPosition(0); //Sets servo position to .5
+            s2.setPosition(0.3); //Sets servo position to .5
+            runtime2.reset();
         }
 
         //Controls the raising and lower the arm crunch mast. (Controller 2)
@@ -154,7 +155,7 @@ public class TeleOp2018 extends OpMode {
             s3.setPosition(0.36); //Sets servo position to 0.36
             s4.setPosition(0.52); //Sets servo position to 0.58
             runtime.reset();
-        } else if (gamepad2.right_trigger == 0 & runtime.seconds() < 0.5) {
+        } else if (gamepad2.right_trigger == 0 && runtime.seconds() < 0.5) {
             s3.setPosition(0.21); //Sets servo position to 0.36
             s4.setPosition(0.67); //Sets servo position to 0.58
         } else { //If not pressed, open arm crunch
@@ -173,7 +174,6 @@ public class TeleOp2018 extends OpMode {
             m2.setPower(((LUD - LRL) / 1.5) - (RLR / 1.2) + turn); //Steering for top right
             m3.setPower(((LUD - LRL) / 1.5) + (RLR / 1.2) - turn); //Steering for back left
             m4.setPower(((LRL + LUD) / 1.5) - (RLR / 1.2) + turn); //Steering for back right
-
         }
     }
 }

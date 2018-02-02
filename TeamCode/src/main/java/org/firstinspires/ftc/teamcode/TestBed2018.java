@@ -40,6 +40,12 @@ import static com.sun.tools.javac.util.Constants.format;
 
 @TeleOp(name="TestBed", group="TeleOp")
 public class TestBed2018 extends OpMode {
+
+    //
+    // From Matt: PLEASE USE ToddBot instead!!
+    //
+
+
     DcMotor m1; //Define dcMotor as m1
     DcMotor m2; //Define dcMotor as m2
     DcMotor m3; //Define dcMotor as m3
@@ -160,7 +166,7 @@ public class TestBed2018 extends OpMode {
         s2.setPosition(currentPosition);
         */
 
-        telemetry.addData("Range1: ",  r1.getDistance(DistanceUnit.CM) + "\nRange2: " + r2.getDistance(DistanceUnit.CM)); //Adds telemetry to debug
+        telemetry.addData("Matt says use ToddBot instead!\nRange1: ",  r1.getDistance(DistanceUnit.CM) + "\nRange2: " + r2.getDistance(DistanceUnit.CM)); //Adds telemetry to debug
         telemetry.update(); //Updates telemetry with new informatio
         float LUD = gamepad1.left_stick_y; //Variable for left stick y axis
         float LRL = gamepad1.left_stick_x; //Variable for left stick x axis

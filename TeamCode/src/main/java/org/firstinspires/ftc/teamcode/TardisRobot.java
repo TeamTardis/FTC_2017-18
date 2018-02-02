@@ -27,6 +27,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.Servo;
 
-public class TardisRobot {
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+
+public abstract class TardisRobot extends OpMode{
+
 
 }

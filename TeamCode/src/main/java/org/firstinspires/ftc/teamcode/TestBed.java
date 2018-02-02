@@ -29,4 +29,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class TestBed extends TardisRobot{
 
+    @Override
+    public void init(){return;}
+
+    @Override
+    public void loop(){return;}
+
 }
