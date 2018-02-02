@@ -52,6 +52,8 @@ public class TeleOp2018 extends OpMode {
     TouchSensor touchSensor1; //Define touch sensor as touchSensor1 (mast limit switch)
 
     ElapsedTime runtime; //Time variable
+    ElapsedTime runtime2;
+
     float straight = 0; //Variable for straight motion
     double turn = 0; //Variable for turn
     double wristPosition = 0; //Variable for wristPosition
@@ -81,6 +83,7 @@ public class TeleOp2018 extends OpMode {
         touchSensor1 = hardwareMap.touchSensor.get("t1"); //Sets touchSensor1 to t1 in the config
 
         runtime = new ElapsedTime(); //Creates runtime variable for using time
+        runtime2 = new ElapsedTime(); //Creates runtime variable for using time
 
         s1.setPosition(0); //Pulls jewel appendage against side of robot
         s2.setPosition(1); //Opens Relic Claw
@@ -100,19 +103,22 @@ public class TeleOp2018 extends OpMode {
         telemetry.addData("Motor 7: ", encoderCurrent); //Telemetry for variables
 
         float LUD = gamepad1.left_stick_y; //Variable for left stick y axis on gamepad 1 for driver control
-        double LRL = (-gamepad1.left_stick_x)*1.5; //Variable for left stick x axis on gamepad 1 for driver control
+        double LRL = (-gamepad1.left_stick_x) * 1.5; //Variable for left stick x axis on gamepad 1 for driver control
         float RUD = gamepad1.right_stick_y; //Variable for right stick y axis on gamepad 1 for driver control
         float RLR = -gamepad1.right_stick_x; //Variable for right stick x axis on gamepad 1 for driver control
 
         //Controls for Relic Claw (Controller 2)
         if (gamepad2.left_trigger != 0) { //If left trigger is pressed, close claw
-            s2.setPosition(0.5); //Sets servo position to 1
+            s2.setPosition(0.7); //Sets servo position to 1
+            runtime2.reset();
+        } else if (gamepad2.left_trigger == 0 && runtime2.seconds() < 0.5) {
+            s2.setPosition(0.6);
         } else { //If not pressed, open claw
-            s2.setPosition(1); //Sets servo position to .5
+            s2.setPosition(0); //Sets servo position to .5
         }
 
         //Controls the raising and lower the arm crunch mast. (Controller 2)
-        if (gamepad2.left_stick_y > 0.1 && !touchSensor1.isPressed()){ //If the y axis is raised
+        if (gamepad2.left_stick_y > 0.1 && !touchSensor1.isPressed()) { //If the y axis is raised
             m7.setPower(gamepad2.left_stick_y / 4); //Raise the arm mast
         } else if (gamepad2.left_stick_y < -0.1) { //If the y axis is lowered
             m7.setPower(gamepad2.left_stick_y / 2); //Lower the arm mast
@@ -147,22 +153,26 @@ public class TeleOp2018 extends OpMode {
         if (gamepad2.right_trigger != 0) { //If right trigger is pressed, close claw
             s3.setPosition(0.36); //Sets servo position to 0.36
             s4.setPosition(0.52); //Sets servo position to 0.58
+            runtime.reset();
+        } else if (gamepad2.right_trigger == 0 & runtime.seconds() < 0.5) {
+            s3.setPosition(0.21); //Sets servo position to 0.36
+            s4.setPosition(0.67); //Sets servo position to 0.58
         } else { //If not pressed, open arm crunch
             s3.setPosition(0); //Sets servo position to 1
             s4.setPosition(0.9); //Sets servo position to 1
         }
 
         //Controls for drive train (Controller 1)
-        if (gamepad1.right_trigger == 0) { //Controls for slow mode (default)
+        if (gamepad1.right_trigger == 0) { //Controls for slow mode (default)0
             m1.setPower(((LRL + LUD) / 3) + (RLR / 4) - turn); //Steering for top left
             m2.setPower(((LUD - LRL) / 3) - (RLR / 4) + turn); //Steering for top right
             m3.setPower(((LUD - LRL) / 3) + (RLR / 4) - turn); //Steering for back left
             m4.setPower(((LRL + LUD) / 3) - (RLR / 4) + turn); //Steering for back right
         } else { //Controls for normal mode
-            m1.setPower(((LRL + LUD) / 2) + (RLR / 2) - turn); //Steering for top left
-            m2.setPower(((LUD - LRL) / 2) - (RLR / 2) + turn); //Steering for top right
-            m3.setPower(((LUD - LRL) / 2) + (RLR / 2) - turn); //Steering for back left
-            m4.setPower(((LRL + LUD) / 2) - (RLR / 2) + turn); //Steering for back right
+            m1.setPower(((LRL + LUD) / 1.5) + (RLR / 1.2) - turn); //Steering for top left
+            m2.setPower(((LUD - LRL) / 1.5) - (RLR / 1.2) + turn); //Steering for top right
+            m3.setPower(((LUD - LRL) / 1.5) + (RLR / 1.2) - turn); //Steering for back left
+            m4.setPower(((LRL + LUD) / 1.5) - (RLR / 1.2) + turn); //Steering for back right
 
         }
     }

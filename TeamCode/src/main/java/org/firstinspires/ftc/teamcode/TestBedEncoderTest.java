@@ -14,10 +14,12 @@ import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+import static org.firstinspires.ftc.teamcode.RangeTestBedSteps.steps.EXPLORE;
 import static org.firstinspires.ftc.teamcode.RangeTestBedSteps.steps.FORWARD_UNTIL_COLUMN;
 import static org.firstinspires.ftc.teamcode.RangeTestBedSteps.steps.RUNTIME_RESET;
 //Imports
@@ -32,6 +34,8 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
 
     Servo s1; //Claw grip servo
     Servo s2; //Claw rotation servo
+
+    TouchSensor touchSensor1; //Define touch sensor as touchSensor1 (mast limit switch)
 
     IntegratingGyroscope gyro; //Gyro
     ModernRoboticsI2cGyro modernRoboticsI2cGyro;
@@ -57,6 +61,8 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
 
         m1.setDirection(DcMotor.Direction.REVERSE);
         m3.setDirection(DcMotor.Direction.REVERSE);
+
+        touchSensor1 = hardwareMap.touchSensor.get("t1"); //Sets touchSensor1 to t1 in the config
 
         r1reader = hardwareMap.i2cDeviceSynch.get("r1"); //Port 1 (Right side)
         r1 = new ModernRoboticsI2cRangeSensor(r1reader);
@@ -89,16 +95,18 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
     double rangeCM2;
     double rangePrevCM2 = 0;
     float encoderPause;
-    int leftcolumn = 1930;
-    int centercolumn = 2000;
+    int leftcolumn = 2000;
+    int centercolumn = 2200;
     int rightcolumn = 2000;
+    double speed = 0;
+    double target = 0;
 
     steps CURRENT_STEP = RUNTIME_RESET; //Sets the variable CURRENT_STEP to the first step in the sequence
 
     @Override
     public void loop() {
 
-        telemetry.addData("Step", CURRENT_STEP + "\nGyro: " + modernRoboticsI2cGyro.getIntegratedZValue() + "\nEncoder: " + m1.getCurrentPosition() + "\nEncoder Pause: " + encoderPause); //Adds telemetry to debug
+        telemetry.addData("Step", CURRENT_STEP + "\nSpeed: " + speed + "\nEncoder: " + m1.getCurrentPosition() + "\nEncoder Pause: " + encoderPause); //Adds telemetry to debug
         telemetry.update(); //Updates telemetry with new information
 
         rangeCM1 = r1.getDistance(DistanceUnit.CM);
@@ -154,7 +162,7 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
                 if (runtime.seconds() > 2 && runtime.seconds() < 2.5) {
                     encoderPause = m1.getCurrentPosition();
                 }
-                if ((m1.getCurrentPosition() - encoderPause) > leftcolumn) {
+                if ((m1.getCurrentPosition() - encoderPause) > centercolumn) {
                     m1.setPower(0);
                     m2.setPower(0);
                     m3.setPower(0);
@@ -173,26 +181,9 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
 
             case ROTATION:
 
-                if (modernRoboticsI2cGyro.getIntegratedZValue() > 80) {
-                    m1.setPower(0);
-                    m2.setPower(0);
-                    m3.setPower(0);
-                    m4.setPower(0);
-                    runtime.reset();
-                    CURRENT_STEP = steps.ROTATION2;
-                    break;
-                }
-
-                m1.setPower(-.1);
-                m2.setPower(.1);
-                m3.setPower(-.1);
-                m4.setPower(.1);
-                break;
-
-
-            case ROTATION2:
-
-                if (modernRoboticsI2cGyro.getIntegratedZValue() < 91 && modernRoboticsI2cGyro.getIntegratedZValue() > 89) {
+                target = 90;
+                speed = (2/(1+Math.pow(Math.E, -.015*(target - modernRoboticsI2cGyro.getIntegratedZValue())))) - 1;
+                if (modernRoboticsI2cGyro.getIntegratedZValue() > target - 2 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 2) {
                     m1.setPower(0);
                     m2.setPower(0);
                     m3.setPower(0);
@@ -200,19 +191,11 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
                     runtime.reset();
                     CURRENT_STEP = steps.FORWARD;
                     break;
-                } else if (modernRoboticsI2cGyro.getIntegratedZValue() > -178) {
-                    m1.setPower(-.07);
-                    m2.setPower(.07);
-                    m3.setPower(-.07);
-                    m4.setPower(.07);
-                    break;
-                } else if (modernRoboticsI2cGyro.getIntegratedZValue() < -182) {
-                    m1.setPower(.07);
-                    m2.setPower(-.07);
-                    m3.setPower(.07);
-                    m4.setPower(-.07);
-                    break;
                 }
+                m1.setPower(-speed);
+                m2.setPower(speed);
+                m3.setPower(-speed);
+                m4.setPower(speed);
                 break;
 
             case FORWARD: //Beginning of the case statement FORWARD
@@ -251,7 +234,7 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
                     m3.setPower(0);
                     m4.setPower(0);
                     runtime.reset(); //Resets the runtime
-                    CURRENT_STEP = steps.FORWARD2; //Changes step to FORWARD2
+                    CURRENT_STEP = steps.ROTATION2; //Changes step to FORWARD2
                     break; //Exits switch statement
                 }
                 m1.setPower(-0.1);
@@ -279,13 +262,13 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
 
             case BACK2: //Beginning of the case statement BACK2
 
-                if (runtime.seconds() > 0.5) { //Runs for 0.5 seconds
+                if (runtime.seconds() > 1) { //Runs for 0.5 seconds
                     m1.setPower(0);
                     m2.setPower(0);
                     m3.setPower(0);
                     m4.setPower(0);
                     runtime.reset(); //Resets the runtime
-                    CURRENT_STEP = steps.STOP; //Changes step to STOP
+                    CURRENT_STEP = steps.ROTATION2; //Changes step to STOP
                     break; //Exits switch statement
                 }
                 m1.setPower(-0.1);
@@ -293,6 +276,136 @@ public class TestBedEncoderTest extends RangeTestBedSteps {
                 m3.setPower(-0.1);
                 m4.setPower(-0.1);
                 break; //Exits switch statement
+
+            case ROTATION2:
+
+                target = -90;
+                speed = (2/(1+Math.pow(Math.E, -.015*(target - modernRoboticsI2cGyro.getIntegratedZValue())))) - 1;
+                if (modernRoboticsI2cGyro.getIntegratedZValue() > target - 2 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 2) {
+                    m1.setPower(0);
+                    m2.setPower(0);
+                    m3.setPower(0);
+                    m4.setPower(0);
+                    runtime.reset();
+                    CURRENT_STEP = steps.EXPLORE;
+                    break;
+                }
+                m1.setPower(-speed);
+                m2.setPower(speed);
+                m3.setPower(-speed);
+                m4.setPower(speed);
+                break;
+
+            case EXPLORE:
+
+                if (touchSensor1.isPressed()) { //Runs for 1 second
+                    m1.setPower(0);
+                    m2.setPower(0);
+                    m3.setPower(0);
+                    m4.setPower(0);
+                    runtime.reset(); //Resets the runtime
+                    CURRENT_STEP = steps.GRAB; //Changes step to BACK2
+                    break; //Exits switch statement
+                }
+                m1.setPower(0.2);
+                m2.setPower(0.2);
+                m3.setPower(0.2);
+                m4.setPower(0.2); //Drives forward without using gyro
+                break; //Exits switch statement
+
+            case GRAB:
+
+                if(runtime.seconds() > .5) {
+                    m1.setPower(0);
+                    m2.setPower(0);
+                    m3.setPower(0);
+                    m4.setPower(0);
+                    runtime.reset(); //Resets the runtime
+                    CURRENT_STEP = steps.RETURN; //Changes step to BACK2
+                }
+                s1.setPosition(0);
+                break;
+
+            case RETURN:
+
+                if(runtime.seconds() > 1.5) {
+                    m1.setPower(0);
+                    m2.setPower(0);
+                    m3.setPower(0);
+                    m4.setPower(0);
+                    runtime.reset(); //Resets the runtime
+                    CURRENT_STEP = steps.ROTATION3; //Changes step to BACK2
+                }
+                m1.setPower(-.2);
+                m2.setPower(-.2);
+                m3.setPower(-.2);
+                m4.setPower(-.2); //Drives forward without using gyro
+                break; //Exits switch statement
+
+            case ROTATION3:
+
+                target = 95;
+                speed = (2/(1+Math.pow(Math.E, -.015*(target - modernRoboticsI2cGyro.getIntegratedZValue())))) - 1;
+                if (modernRoboticsI2cGyro.getIntegratedZValue() > target - 2 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 2) {
+                    m1.setPower(0);
+                    m2.setPower(0);
+                    m3.setPower(0);
+                    m4.setPower(0);
+                    runtime.reset();
+                    CURRENT_STEP = steps.FORWARD3;
+                    break;
+                }
+                m1.setPower(-speed);
+                m2.setPower(speed);
+                m3.setPower(-speed);
+                m4.setPower(speed);
+                break;
+
+            case FORWARD3:
+
+                if (runtime.seconds() > 2.5) { //Runs for 2.5 seconds
+                    m1.setPower(0);
+                    m2.setPower(0);
+                    m3.setPower(0);
+                    m4.setPower(0);
+                    runtime.reset(); //Resets the runtime
+                    CURRENT_STEP = steps.DROP2; //Changes step to DROP
+                    break; //Exits switch statement
+                }
+                m1.setPower(0.1);
+                m2.setPower(0.1);
+                m3.setPower(0.1);
+                m4.setPower(0.1); //Drive forward without using gyro
+                break; //Exits switch statement
+
+            case DROP2:
+
+                s1.setPosition(1); //Opens crunch servo
+                m1.setPower(0);
+                m2.setPower(0);
+                m3.setPower(0);
+                m4.setPower(0);
+                runtime.reset(); //Resets the runtime
+                CURRENT_STEP = steps.BACK3; //Changes step to BACK
+                break; //Exits switch statement
+
+            case BACK3:
+
+                if (runtime.seconds() > .5) { //Runs for 2.5 seconds
+                    m1.setPower(0);
+                    m2.setPower(0);
+                    m3.setPower(0);
+                    m4.setPower(0);
+                    runtime.reset(); //Resets the runtime
+                    CURRENT_STEP = steps.STOP; //Changes step to DROP
+                    break; //Exits switch statement
+                }
+                m1.setPower(-.1);
+                m2.setPower(-.1);
+                m3.setPower(-.1);
+                m4.setPower(-.1); //Drive forward without using gyro
+                break; //Exits switch statement
+
             case STOP:
 
                 m1.setPower(0);

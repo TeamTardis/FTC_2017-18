@@ -7,7 +7,9 @@ import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.AccelerationSensor;
 import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.CompassSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
@@ -37,7 +39,6 @@ import static com.sun.tools.javac.util.Constants.format;
 //Imports
 
 @TeleOp(name="TestBed", group="TeleOp")
-@Disabled
 public class TestBed2018 extends OpMode {
     DcMotor m1; //Define dcMotor as m1
     DcMotor m2; //Define dcMotor as m2
@@ -71,8 +72,8 @@ public class TestBed2018 extends OpMode {
         m2.setDirection(DcMotor.Direction.REVERSE);
         m4.setDirection(DcMotor.Direction.REVERSE);
 
-        s1.setPosition(1);
-        s2.setPosition(0);
+        s1.setPosition(0);
+        s2.setPosition(1);
         r1reader = hardwareMap.i2cDeviceSynch.get("r1"); //Port 1 (Right side)
         r1 = new ModernRoboticsI2cRangeSensor(r1reader);
         r1.setI2cAddress(I2cAddr.create8bit(0x2a));
@@ -158,7 +159,6 @@ public class TestBed2018 extends OpMode {
 
         s2.setPosition(currentPosition);
         */
-        telemetry.addData("Motor 5: ", encoderCurrent);
 
         telemetry.addData("Range1: ",  r1.getDistance(DistanceUnit.CM) + "\nRange2: " + r2.getDistance(DistanceUnit.CM)); //Adds telemetry to debug
         telemetry.update(); //Updates telemetry with new informatio
@@ -167,12 +167,10 @@ public class TestBed2018 extends OpMode {
         float RUD = gamepad1.right_stick_y; //Variable for right stick y axis
         float RLR = -gamepad1.right_stick_x; //Variable for right stick x axis
 
-        if (gamepad2.right_trigger != 0) {
-            s1.setPosition(1); //Set servo position to 0.8
-            s2.setPosition(0);
+        if (gamepad1.left_trigger != 0) {
+            s1.setPosition(0); //Set servo position to 0.8
         } else {
-            s1.setPosition(0); //Set servo position to 1
-            s2.setPosition(1); //Set servo position to 1
+            s1.setPosition(1); //Set servo position to 1
         }
 
         if ((gamepad2.left_stick_y < -.1 || gamepad2.left_stick_y > .1)) {
