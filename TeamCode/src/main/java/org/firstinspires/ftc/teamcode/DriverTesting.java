@@ -3,9 +3,11 @@ package org.firstinspires.ftc.teamcode;
  * Created by Corning Robotics on 9/25/16.
  */
 
+//import com.qualcomm.hardware.modernrobotics.ModernRoboticsAnalogOpticalDistanceSensor;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
@@ -13,13 +15,14 @@ import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import static org.firstinspires.ftc.teamcode.RangeTestBedSteps.steps.RUNTIME_RESET;
 //Imports
 
-@Autonomous(name = "Driving Test", group = "Autonomous")
+@TeleOp(name = "Driving Test", group = "TeleOp")
 public class DriverTesting extends RangeTestBedSteps {
     DcMotor m1; //Define dcMotor as m1
     DcMotor m2; //Define dcMotor as m2
@@ -37,6 +40,12 @@ public class DriverTesting extends RangeTestBedSteps {
 
     ElapsedTime runtime;
 
+    OpticalDistanceSensor ods1;
+    OpticalDistanceSensor ods2;
+
+//    ModernRoboticsAnalogOpticalDistanceSensor ods1;
+//    ModernRoboticsAnalogOpticalDistanceSensor ods2;
+
     I2cDeviceSynch r1reader; //Right range sensor
     ModernRoboticsI2cRangeSensor r1;
 
@@ -53,6 +62,11 @@ public class DriverTesting extends RangeTestBedSteps {
 
         s1 = hardwareMap.servo.get("s1"); //Sets s1 i the config
         s2 = hardwareMap.servo.get("s2"); //Sets s1 i the config
+
+        ods1 = hardwareMap.get(OpticalDistanceSensor.class, "ods1");
+        ods2 = hardwareMap.get(OpticalDistanceSensor.class, "ods2");
+        ods1.enableLed(true);
+        ods2.enableLed(true);
 
         m1.setDirection(DcMotor.Direction.REVERSE);
         m3.setDirection(DcMotor.Direction.REVERSE);
@@ -101,18 +115,35 @@ public class DriverTesting extends RangeTestBedSteps {
     @Override
     public void loop() {
 
-        double m1m4 = (Math.PI/2.2)*Math.cos((((modernRoboticsI2cGyro.getIntegratedZValue() / 45))/1.28) - 1.6);
-        double m2m3 = (Math.PI/2.2)*Math.cos((((modernRoboticsI2cGyro.getIntegratedZValue() / 45))/1.28) + 1.6);
+        float LUD = gamepad1.left_stick_y; //Variable for left stick y axis
+        float LRL = gamepad1.left_stick_x; //Variable for left stick x axis
+        float RLR = -gamepad1.right_stick_x; //Variable for right stick x axis on gamepad 1 for driver control
 
-        telemetry.addData("M1M4: ", m1m4 + "\nM2M3: " + m2m3 + "\nGyro: " + modernRoboticsI2cGyro.getIntegratedZValue() + "\nGyro / 45: " + modernRoboticsI2cGyro.getIntegratedZValue() / 45); //Adds telemetry to debug
+        /*
+        double m1m4 = -1.4279*Math.sin((modernRoboticsI2cGyro.getIntegratedZValue()*0.9984909/57.2)-0.783565);
+        double m2m3 = -1.4279*Math.sin((modernRoboticsI2cGyro.getIntegratedZValue()*0.9984909/57.2)-2.357004);
+
+        if(m1m4 > 1) {
+            m1m4 = 1;
+        } else if(m1m4 < -1) {
+            m1m4 = -1;
+        }
+
+        if(m2m3 > 1) {
+            m2m3 = 1;
+        } else if(m2m3 < -1) {
+            m2m3 = -1;
+        }
+
+        m1.setPower((m1m4*2 + 1.871));
+        m2.setPower(-(m2m3*2) - 1.871);
+        m3.setPower(-(m2m3*2) + 1.871);
+        m4.setPower((m1m4*2 - 1.871));
+        */
+        telemetry.addData("Ods1 light detected: ", ods1.getLightDetected() + "\nOds2 light detected: " + ods2.getLightDetected() + "\nGyro: " + modernRoboticsI2cGyro.getIntegratedZValue()); //Adds telemetry to debug
         telemetry.update(); //Updates telemetry with new information
 
         rangeCM1 = r1.getDistance(DistanceUnit.CM);
         rangeCM2 = r2.getDistance(DistanceUnit.CM);
-
-        m1.setPower(m1m4);
-        m2.setPower(m2m3);
-        m3.setPower(m2m3);
-        m4.setPower(m1m4);
     }
 }

@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
+import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -55,6 +56,7 @@ public class TestBed2018 extends OpMode {
     Servo s1; //Claw grip servo
     Servo s2; //Claw rotation servo
 
+    OpticalDistanceSensor ods3;
     IntegratingGyroscope gyro; //Gyro
     ModernRoboticsI2cGyro modernRoboticsI2cGyro;
 
@@ -77,6 +79,8 @@ public class TestBed2018 extends OpMode {
 
         m2.setDirection(DcMotor.Direction.REVERSE);
         m4.setDirection(DcMotor.Direction.REVERSE);
+
+        ods3 = hardwareMap.opticalDistanceSensor.get("ods3");
 
         s1.setPosition(0);
         s2.setPosition(1);
@@ -166,7 +170,7 @@ public class TestBed2018 extends OpMode {
         s2.setPosition(currentPosition);
         */
 
-        telemetry.addData("Matt says use ToddBot instead!\nRange1: ",  r1.getDistance(DistanceUnit.CM) + "\nRange2: " + r2.getDistance(DistanceUnit.CM)); //Adds telemetry to debug
+        telemetry.addData("Matt says use ToddBot instead!\nODS3: ",  ods3.getLightDetected() + "\nRange2: " + r2.getDistance(DistanceUnit.CM)); //Adds telemetry to debug
         telemetry.update(); //Updates telemetry with new informatio
         float LUD = gamepad1.left_stick_y; //Variable for left stick y axis
         float LRL = gamepad1.left_stick_x; //Variable for left stick x axis
