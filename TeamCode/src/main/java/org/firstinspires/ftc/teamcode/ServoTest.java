@@ -28,15 +28,14 @@ import static com.sun.tools.javac.util.Constants.format;
 //Imports
 
 @TeleOp(name="ServoTest", group="TeleOp")
-@Disabled
 
 public class ServoTest extends OpMode {
 
-    Servo s1;
+    Servo servo;
 
     public void init() { //Start of the initiation for autonomous
 
-        s1 = hardwareMap.servo.get("s1"); //Sets s1 i the config
+        servo = hardwareMap.servo.get("servo"); //Sets s1 i the config
 
     } //Ends initiation
 
@@ -45,14 +44,20 @@ public class ServoTest extends OpMode {
 
         float LUD = gamepad1.left_stick_y; //Variable for left stick y axis
 
-        double stest = LUD / 2 + 0.5;
+        double stest = 0;
 
+        if (stest >= 0 && stest <= 1){
+            if (LUD > 0) {
+                stest += (LUD + 1) / 2;
+            } else if (LUD < 0){
+                stest -= (LUD - 1) / 2;
+            }
+        }
 
-        telemetry.addData("","Servo" + s1.getPosition()); //Adds telemetry to debug
+        telemetry.addData("","Servo" + servo.getPosition()); //Adds telemetry to debug
         telemetry.update(); //Updates telemetry with new information
 
-        s1.setPosition(stest);
+        servo.setPosition(stest);
 
     }
 }
-

@@ -165,10 +165,17 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
     public void setStrafePower(double power, double turn) {
 
         //Unless power is 0, set power to at least some minimum
+        /*
         if (power < minPowerPos && power > 0) {
             power = minPowerPos;
         } else if (power > minPowerNeg && power < 0) {
             power = minPowerNeg;
+        }
+        */
+        if (power < .22 && power > 0) {
+            power = .22;
+        } else if (power > -.22 && power < 0) {
+            power = -.22;
         }
 
         m1.setPower(power - turn); //Drives robot to strafe left or right, availability for turn variable
@@ -184,9 +191,9 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
         return (rangeCM2 <= rangeCheckClose || rangeCM2 >= rangeCheckFar);
     }
 
-    float leftposition = 56; //Variable for left column positioning
+    float leftposition = 57; //Variable for left column positioning
     float centerposition = 73; //Variable for center column positioning
-    float rightposition = 86; //Variable for right column positioning
+    float rightposition = 90; //Variable for right column positioning
 
     double lefttolerance = 1.1; //Variables for column tolerances
     double centertolerance = 1.1;
@@ -243,8 +250,8 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
 
         s1.setPosition(0); //Pulls jewel appendage against side of robot
         s2.setPosition(1); //Closes relic claw
-        s3.setPosition(0); //Sets arm crunch servo to open
-        s4.setPosition(1); //Sets Arm Crunch servo to open
+        s3.setPosition(0.35); //Sets Arm Crunch Servo A
+        s4.setPosition(1); //Sets Arm Crunch Servo B
         s6.setPosition(0.5); //Sets arm extension to not move
 
         modernRoboticsI2cGyro.calibrate(); //Gyro calibration
@@ -365,8 +372,8 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
 
                     RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate); //Image scanning
 
-                    s3.setPosition(0.35); //Closes arm crunch
-                    s4.setPosition(0.58);
+                    s3.setPosition(0.85); //Closes arm crunch
+                    s4.setPosition(0.45);
 
                     if (vuMark == RelicRecoveryVuMark.LEFT && runtime.seconds() > 1.5) { //Vuforia for left pictograph
                         image = 1;
@@ -399,7 +406,7 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
                     setDrivePower(0, 0); //Stop robot
 
                     if (runtime.seconds() > 0.3 && runtime.seconds() < 0.8) { //Activates motor to raise glyph
-                        m7.setPower(-0.5);
+                        m7.setPower(-0.7);
                     } else {
                         m7.setPower(0);
                     }
@@ -436,25 +443,48 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
                     }
                     break; //Exits switch statement
 
-                case KNOCKBACK: //Beginning of case statement KNOCKBACK
+                case KNOCKBACK: //Beginning of the case statement
 
-                    if (runtime.seconds() > 0.4) {
-                        setDrivePower(0, 0);
-                        CURRENT_STEP = steps.KNOCKFORWARDS; //Changes step to KNOCKFORWARDS
-                        break; //Exits switch statement
-                    }
-                    setDrivePower(-0.1, 0); //Drive backward without using gyro
-                    break; //Exits switch statement
-
-                case KNOCKFORWARDS: //Beginning of case statement KNOCKFORWARDS
-
-                    if (runtime.seconds() > 0.5) {
+                    if(runtime.seconds() > 1){
                         setDrivePower(0, 0); //Stops robot
-                        CURRENT_STEP = steps.RAISESERVO; //Changes step to RAISESERVO
+                        runtime.reset();
+                        CURRENT_STEP = steps.RAISESERVO; //Changes step to KNOCKFORWARDS
                         break; //Exits switch statement
                     }
-                    setDrivePower(0.1, 0); //Drive forward without using gyro
-                    break; //Exits switch statement
+                    if(runtime.seconds() < 0.3) {
+                        setRotationPower(-.15);
+                        break;
+                    }
+                    if((runtime.seconds() > 0.5 && runtime.seconds() < 0.9) && modernRoboticsI2cGyro.getIntegratedZValue() < 0) {
+                        s1.setPosition(0);
+                        setRotationPower(.15);
+                        break;
+                    }
+                    break;
+
+                case KNOCKFORWARDS: //Beginning of the case statement
+
+                    if(runtime.seconds() > 1.3){
+                        setDrivePower(0, 0); //Stops robot
+                        runtime.reset();
+                        CURRENT_STEP = steps.RAISESERVO; //Changes step to KNOCKFORWARDS
+                        break; //Exits switch statement
+                    }
+                    if(runtime.seconds() < 0.3) {
+                        setRotationPower(.15);
+                        break;
+                    }
+                    if((runtime.seconds() > 0.5 && runtime.seconds() < 0.9) && modernRoboticsI2cGyro.getIntegratedZValue() > 0) {
+                        s1.setPosition(0);
+                        setRotationPower(-.15);
+                        break;
+                    }
+                    if(runtime.seconds() > 0.9 && runtime.seconds() < 1.2) {
+                        s1.setPosition(0);
+                        setDrivePower(.2,0);
+                        break;
+                    }
+                    break;
 
                 case RAISESERVO: //Beginning of the case statement RAISESERVO
 
@@ -684,8 +714,8 @@ public class NewBlueFar extends AutoSteps { //Creates class and extends program 
 
                 case DROP: //Beginning of the case statement DROP
 
-                    s3.setPosition(0); //Opens left arm crunch servo
-                    s4.setPosition(1); //Opens right arm crunch servo
+                    s3.setPosition(0.35); //Sets Arm Crunch Servo A
+                    s4.setPosition(1); //Sets Arm Crunch Servo B
                     setDrivePower(0, 0); //Stops robot
                     runtime.reset(); //Resets the runtime
                     CURRENT_STEP = steps.BACK; //Changes step to BACK

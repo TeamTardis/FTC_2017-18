@@ -329,7 +329,6 @@ public class BlueNear_NoGlyph extends AutoSteps {
                     s1.setPosition(0); //Brings jewel appendage servo in
                     runtime.reset(); //Resets runtime
                     CURRENT_STEP = steps.PARK; //Changes steps to PARK
-
                     break; //Exits switch statement
 
                 case PARK: //Beginning of the case statement

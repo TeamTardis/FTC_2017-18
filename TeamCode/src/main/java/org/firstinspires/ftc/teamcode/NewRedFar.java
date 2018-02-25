@@ -120,8 +120,8 @@ public class NewRedFar extends AutoSteps { //Creates class and extends program w
 
     VuforiaLocalizer vuforia; //Image recognition
 
-    double minPowerPos = 0.1; //Variables for minimum powers
-    double minPowerNeg = -0.1;
+    double minPowerPos = 0.13; //Variables for minimum powers
+    double minPowerNeg = -0.13;
 
     /**
      * Positive = Forward
@@ -184,9 +184,9 @@ public class NewRedFar extends AutoSteps { //Creates class and extends program w
         return (rangeCM2 <= rangeCheckClose || rangeCM2 >= rangeCheckFar);
     }
 
-    float leftposition = 80; //Variable for left column positioning
-    float centerposition = 62; //Variable for center column positioning
-    float rightposition = 45; //Variable for right column positioning
+    float leftposition = 76; //Variable for left column positioning
+    float centerposition = 61; //Variable for center column positioning
+    float rightposition = 44; //Variable for right column positioning
 
     double lefttolerance = 1.1; //Variables for column tolerances
     double centertolerance = 1.1;
@@ -221,7 +221,6 @@ public class NewRedFar extends AutoSteps { //Creates class and extends program w
         c1 = hardwareMap.colorSensor.get("c1"); //Sets colorSensor to c1 in the config, Port 5
         c1.enableLed(true); //Turns Color Sensor LED off
 
-
         r1reader = hardwareMap.i2cDeviceSynch.get("r1"); //Port 1 (Right side)
         r1 = new ModernRoboticsI2cRangeSensor(r1reader);
         r1.setI2cAddress(I2cAddr.create8bit(0x2a));
@@ -243,8 +242,8 @@ public class NewRedFar extends AutoSteps { //Creates class and extends program w
 
         s1.setPosition(0); //Pulls jewel appendage against side of robot
         s2.setPosition(1); //Closes relic claw
-        s3.setPosition(0); //Sets arm crunch servo to open
-        s4.setPosition(1); //Sets Arm Crunch servo to open
+        s3.setPosition(0.35); //Sets Arm Crunch Servo A
+        s4.setPosition(1); //Sets Arm Crunch Servo B
         s6.setPosition(0.5); //Sets arm extension to not move
 
         modernRoboticsI2cGyro.calibrate(); //Gyro calibration
@@ -364,8 +363,8 @@ public class NewRedFar extends AutoSteps { //Creates class and extends program w
 
                     RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate); //Image scanning
 
-                    s3.setPosition(0.35); //Closes arm crunch
-                    s4.setPosition(0.58);
+                    s3.setPosition(0.85); //Closes arm crunch
+                    s4.setPosition(0.45);
 
                     if (vuMark == RelicRecoveryVuMark.LEFT) { //Vuforia for left pictograph
                         image = 1;
@@ -397,7 +396,7 @@ public class NewRedFar extends AutoSteps { //Creates class and extends program w
                     setDrivePower(0, 0); //Stop robot
 
                     if (runtime.seconds() > 0.3 && runtime.seconds() < 0.8) { //Activates motor to raise glyph
-                        m7.setPower(-0.5);
+                        m7.setPower(-0.7);
                     } else {
                         m7.setPower(0);
                     }
@@ -694,8 +693,8 @@ public class NewRedFar extends AutoSteps { //Creates class and extends program w
 
                 case DROP: //Beginning of the case statement DROP
 
-                    s3.setPosition(0); //Opens left arm crunch servo
-                    s4.setPosition(1); //Opens right arm crunch servo
+                    s3.setPosition(0.45); //Opens arm crunch
+                    s4.setPosition(0.85);
                     setDrivePower(0, 0); //Stops robot
                     runtime.reset(); //Resets the runtime
                     CURRENT_STEP = steps.BACK; //Changes step to BACK
