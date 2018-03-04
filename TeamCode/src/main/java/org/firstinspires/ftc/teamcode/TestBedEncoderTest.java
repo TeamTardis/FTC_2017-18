@@ -26,6 +26,7 @@ import static org.firstinspires.ftc.teamcode.RangeTestBedSteps.steps.RUNTIME_RES
 //Imports
 
 @Autonomous(name = "TestBedEncoderTest", group = "Autonomous")
+@Disabled
 public class TestBedEncoderTest extends RangeTestBedSteps {
     DcMotor m1; //Define dcMotor as m1
     DcMotor m2; //Define dcMotor as m2

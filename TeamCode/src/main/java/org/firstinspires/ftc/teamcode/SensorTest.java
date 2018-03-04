@@ -90,8 +90,8 @@ public class SensorTest extends OpMode {
 
         s1.setPosition(0); //Pulls jewel appendage against side of robot
         s2.setPosition(1); //Opens Relic Claw
-        s3.setPosition(0.4); //Sets Arm Crunch Servo A
-        s4.setPosition(0.6); //Sets Arm Crunch Servo B
+        s3.setPosition(0.85); //Closes arm crunch
+        s4.setPosition(0.45);
 //        s5.setPosition(0.5); //Opens 2nd gripper *NOT USED*
         s6.setPosition(0.5); //Sets arm extension to not move
 

@@ -76,7 +76,7 @@ public class BlueNear extends LinearOpMode { //Extends LinearOpMode for autonomo
     /**
      * 2nd Claw Grip Servo, 190 degrees
      */
-    Servo s5; //Second claw grip
+    //Servo s5; //Second claw grip
 
     /**
      * Arm Extension Servo, continuous
@@ -162,7 +162,13 @@ public class BlueNear extends LinearOpMode { //Extends LinearOpMode for autonomo
      **/
     public void setRotationTarget(double target) {//.02, .03
 
-        double power = ((2 / (1 + Math.pow(Math.E, -.023 * (target - modernRoboticsI2cGyro.getIntegratedZValue())))) - 1)/1.;
+        double power = 0;
+        double shift = .2;
+        if(modernRoboticsI2cGyro.getIntegratedZValue() < 0) {
+            power = (2/(1+Math.pow(Math.E, -(.006*(target - modernRoboticsI2cGyro.getIntegratedZValue()) - shift)))) - 1;
+        } else {
+            power = (2/(1+Math.pow(Math.E, -(.006*(target - modernRoboticsI2cGyro.getIntegratedZValue()) + shift)))) - 1;
+        }
         m1.setPower(power); //Drives robot to rotate
         m2.setPower(-power);
         m3.setPower(power);
@@ -181,7 +187,8 @@ public class BlueNear extends LinearOpMode { //Extends LinearOpMode for autonomo
         BACK_STONE,
         DRIVE_TO_CRYPTO,
         ROTATE,
-        PRECISE_ROTATE,
+        PRECISE_ROTATE_C,
+        PRECISE_ROTATE_CC,
         DROP_GLYPH,
         FIND_GLYPHS,
         SCAN_GLYPHS,

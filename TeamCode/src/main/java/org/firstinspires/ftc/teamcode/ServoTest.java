@@ -28,6 +28,7 @@ import static com.sun.tools.javac.util.Constants.format;
 //Imports
 
 @TeleOp(name="ServoTest", group="TeleOp")
+@Disabled
 
 public class ServoTest extends OpMode {
 

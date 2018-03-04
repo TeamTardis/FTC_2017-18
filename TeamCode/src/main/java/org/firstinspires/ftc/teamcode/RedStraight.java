@@ -23,7 +23,7 @@ import static org.firstinspires.ftc.teamcode.AutoSteps.steps.KNOCKFORWARDS;
 //Imports
 
 @Autonomous(name="RedStraight", group ="Teleop")
-//@Disabled
+@Disabled
 
 public class RedStraight extends AutoSteps {
 

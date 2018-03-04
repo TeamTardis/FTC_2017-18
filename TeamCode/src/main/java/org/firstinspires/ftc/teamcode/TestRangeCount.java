@@ -23,7 +23,7 @@ import static org.firstinspires.ftc.teamcode.RangeTestBedSteps.steps.RUNTIME_RES
 //Imports
 
 @Autonomous(name = "Range count", group = "Autonomous")
-//@Disabled
+@Disabled
 public class TestRangeCount extends RangeTestBedSteps {
     DcMotor m1; //Define dcMotor as m1
     DcMotor m2; //Define dcMotor as m2

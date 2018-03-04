@@ -29,8 +29,8 @@ import static org.firstinspires.ftc.teamcode.RangeTestBedSteps.steps.GRAB;
 import static org.firstinspires.ftc.teamcode.RangeTestBedSteps.steps.RUNTIME_RESET;
 //Imports
 
-@Autonomous(name = "Blue Near Testing", group = "Autonomous")
-public class BlueNearTESTING extends BlueNear {
+@Autonomous(name = "NewBlueNear", group = "Autonomous")
+public class NewBlueNear extends BlueNear {
 
 @Override
 public void runOpMode() { //Start of the initiation for autonomous
@@ -47,7 +47,7 @@ public void runOpMode() { //Start of the initiation for autonomous
     s2 = hardwareMap.servo.get("s2"); //Sets s1 i the config
     s3 = hardwareMap.servo.get("s3"); //Sets s1 i the config
     s4 = hardwareMap.servo.get("s4"); //Sets s1 i the config
-    s5 = hardwareMap.servo.get("s5"); //Sets s1 i the config
+    //s5 = hardwareMap.servo.get("s5"); //Sets s1 i the config
     s6 = hardwareMap.servo.get("s6"); //Sets s1 i the config
 
     m1.setDirection(DcMotor.Direction.REVERSE);
@@ -158,7 +158,7 @@ public void runOpMode() { //Start of the initiation for autonomous
 
                 if (vuMark == RelicRecoveryVuMark.LEFT) { //Vuforia for left pictograph
                     image = 1;
-                    cryptoDistance = 700;
+                    cryptoDistance = 650;
                     changeStep();
                     CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                     break; //Exits switch statement
@@ -166,7 +166,7 @@ public void runOpMode() { //Start of the initiation for autonomous
 
                 if (vuMark == RelicRecoveryVuMark.CENTER) { //Vuforia for center pictograph
                     image = 2;
-                    cryptoDistance = 1300;
+                    cryptoDistance = 1050;
                     changeStep();
                     CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                     break; //Exits switch statement
@@ -174,7 +174,7 @@ public void runOpMode() { //Start of the initiation for autonomous
 
                 if (vuMark == RelicRecoveryVuMark.RIGHT) { //Vuforia for right pictograph
                     image = 3;
-                    cryptoDistance = 1500;
+                    cryptoDistance = 1550;
                     changeStep();
                     CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                     break; //Exits switch statement
@@ -182,7 +182,7 @@ public void runOpMode() { //Start of the initiation for autonomous
 
                 if (image == 0 && runtime.seconds() > 3) { //If we don't scan the image
                     image = 2;
-                    cryptoDistance = 1200;
+                    cryptoDistance = 1050;
                     changeStep();
                     CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                     break;
@@ -222,7 +222,7 @@ public void runOpMode() { //Start of the initiation for autonomous
                 }
 
                 if (runtime.seconds() > .5) {
-                    s1.setPosition(0.65); //Continues to lower jewel arm
+                    s1.setPosition(0.75); //Continues to lower jewel arm
                 }
                 break; //Exits switch statement
 
@@ -276,7 +276,7 @@ public void runOpMode() { //Start of the initiation for autonomous
 
             case OFF_STONE:
 
-                if(runtime.seconds() > 1) {
+                if(runtime.seconds() > 1.1) {
                     if(r3.getDistance(DistanceUnit.CM) > 30) {
                         changeStep();
                         CURRENT_STEP = steps.CHECK_ROTATION;
@@ -291,13 +291,19 @@ public void runOpMode() { //Start of the initiation for autonomous
             case CHECK_ROTATION:
 
                 target = 0;
-                if(modernRoboticsI2cGyro.getIntegratedZValue() > target - 2 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 2) {
+                if (modernRoboticsI2cGyro.getIntegratedZValue() < target + 2 && modernRoboticsI2cGyro.getIntegratedZValue() > target - 2) {
                     changeStep();
                     CURRENT_STEP = steps.BACK_STONE;
                     break;
+                } else {
+                    if(modernRoboticsI2cGyro.getIntegratedZValue() < target) {
+                        setRotationPower(.12);
+                        break;
+                    } else {
+                        setRotationPower(-.12);
+                        break;
+                    }
                 }
-                setRotationTarget(target);
-                break;
 
             case BACK_STONE:
 
@@ -326,20 +332,12 @@ public void runOpMode() { //Start of the initiation for autonomous
             case ROTATE:
 
                 target = -90;
-                if(modernRoboticsI2cGyro.getIntegratedZValue() > target - 2 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 2) {
+                if(modernRoboticsI2cGyro.getIntegratedZValue() > target - 3 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 3) {
                     changeStep();
                     CURRENT_STEP = steps.DROP_GLYPH;
                     break;
                 }
-                if(runtime.seconds() >.5) {
-                    if(modernRoboticsI2cGyro.getIntegratedZValue() > target) {
-                        setRotationPower(-.2);
-                        break;
-                    } else {
-                        setRotationPower(.2);
-                        break;
-                    }
-                }
+                setRotationTarget(target);
                 break;
 
             case DROP_GLYPH:

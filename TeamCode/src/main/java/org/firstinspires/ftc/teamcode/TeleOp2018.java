@@ -138,7 +138,6 @@ public class TeleOp2018 extends OpMode {
             s7.setPosition(0.45);
         }
 
-
         //Controls the raising and lower the arm crunch mast. (Controller 2)
         if (gamepad2.left_stick_y > 0.1 && !touchSensor1.isPressed()) { //If the y axis is raised
             m7.setPower(gamepad2.left_stick_y / 4); //Raise the arm mast
@@ -149,36 +148,36 @@ public class TeleOp2018 extends OpMode {
         }
 
         //Controls for rotating arm base (Controller 2)
-        if (gamepad2.right_stick_x < 0.1 || gamepad2.right_stick_x > 0.1) { //If the x axis of right stick is pressed, move arm base
+        if (gamepad2.right_stick_x < -.1 || gamepad2.right_stick_x > 0.1) { //If the x axis of right stick is pressed, move arm base
             m6.setPower(gamepad2.right_stick_x / 4); //Sets motor power to 1/4th of joystick speed
         } else { //If the x axis of right stick is not pressed, hold at current position
             m6.setPower(0); //Sets motor power to 0
         }
 
         //Controls for arm raise motor (controller 2)
-        if (gamepad2.right_stick_y < 0.1 || gamepad2.right_stick_y > 0.1) { //If the y axis of left stick is pressed, raise arm
+        if (gamepad2.right_stick_y < -0.1 || gamepad2.right_stick_y > 0.1) { //If the y axis of left stick is pressed, raise arm
             m5.setPower(-gamepad2.right_stick_y); //Sets motor power to joystick speed
         } else { //If the y axis of left stick is not pressed, hold at current position
             m5.setPower(0); //Sets motor power to 0
         }
 
-//        if (gamepad2.left_bumper){ //Extend arm servo
-//            s6.setPosition(1);
-//        } else if (gamepad2.right_bumper) { //Retract arm servo
-//            s6.setPosition(0);
-//        } else { //Dont move arm servo
-//            s6.setPosition(0.5);
-//        }
-
-
-        //Controls for arm extension (controller 2)
-        if (gamepad2.left_bumper && armPosition <= 1) {
-            armPosition += 0.005; //Retraction for arm extension
-            s6.setPosition(armPosition); //Sets servo position to arm extension servo
-        } else if (gamepad2.right_bumper && armPosition >= 0.5) {
-            armPosition -= 0.005; //Extension for arm extension
-            s6.setPosition(armPosition); //Sets servo position to arm extension servo
+        if (gamepad2.left_bumper){ //Extend arm servo
+            s6.setPosition(1);
+        } else if (gamepad2.right_bumper) { //Retract arm servo
+            s6.setPosition(0);
+        } else { //Dont move arm servo
+            s6.setPosition(0.5);
         }
+
+//
+//        //Controls for arm extension (controller 2)
+//        if (gamepad2.left_bumper && armPosition <= 1) {
+//            armPosition += 0.005; //Retraction for arm extension
+//            s6.setPosition(armPosition); //Sets servo position to arm extension servo
+//        } else if (gamepad2.right_bumper && armPosition >= 0.5) {
+//            armPosition -= 0.005; //Extension for arm extension
+//            s6.setPosition(armPosition); //Sets servo position to arm extension servo
+//        }
 
         //Controls for arm crunch (Controller 2)
         if (gamepad2.right_trigger != 0) { //If right trigger is pressed, close claw

@@ -22,7 +22,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 //Imports
 
 @Autonomous(name = "BlueNear", group = "Autonomous") //Names program and declares it autonomous
-//@Disabled
+@Disabled
 public class BlueNear_NoGlyph extends AutoSteps {
 
     public static final String TAG = "BlueNear";

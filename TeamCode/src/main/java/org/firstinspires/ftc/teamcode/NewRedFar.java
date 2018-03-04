@@ -736,6 +736,8 @@ public class NewRedFar extends AutoSteps { //Creates class and extends program w
                 case STOP: //Beginning of the case statement STOP
                     setDrivePower(0, 0); //Stops robot
                     break; //Exits switch statement
+
+                case COND_BACK:
             }
         }
     }
