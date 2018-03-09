@@ -163,16 +163,33 @@ public class BlueNear extends LinearOpMode { //Extends LinearOpMode for autonomo
     public void setRotationTarget(double target) {//.02, .03
 
         double power = 0;
+        double gyro = modernRoboticsI2cGyro.getIntegratedZValue();
         double shift = .2;
-        if(modernRoboticsI2cGyro.getIntegratedZValue() < 0) {
-            power = (2/(1+Math.pow(Math.E, -(.006*(target - modernRoboticsI2cGyro.getIntegratedZValue()) - shift)))) - 1;
+        if(gyro < 0) {
+            power = (2/(1+Math.pow(Math.E, -(.006*(target - gyro) - shift)))) - 1;
         } else {
-            power = (2/(1+Math.pow(Math.E, -(.006*(target - modernRoboticsI2cGyro.getIntegratedZValue()) + shift)))) - 1;
+            power = (2/(1+Math.pow(Math.E, -(.006*(target - gyro) + shift)))) - 1;
         }
         m1.setPower(power); //Drives robot to rotate
         m2.setPower(-power);
         m3.setPower(power);
         m4.setPower(-power);
+    }
+
+    /**
+     * Positive = Clockwise
+     **/
+    public double setRotationPercise(double target, double currPower) {//.02, .03
+
+        double gyro = modernRoboticsI2cGyro.getIntegratedZValue();
+        double newPower = 0;
+        if(gyro > target) {
+            newPower = currPower -= .015;
+        }
+        if(gyro < target) {
+            newPower = currPower += .015;
+        }
+        return newPower;
     }
 
     public enum steps {
@@ -187,8 +204,8 @@ public class BlueNear extends LinearOpMode { //Extends LinearOpMode for autonomo
         BACK_STONE,
         DRIVE_TO_CRYPTO,
         ROTATE,
-        PRECISE_ROTATE_C,
-        PRECISE_ROTATE_CC,
+        PRECISE_ROTATE,
+        CHECK_DISTANCE,
         DROP_GLYPH,
         FIND_GLYPHS,
         SCAN_GLYPHS,
