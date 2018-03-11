@@ -90,6 +90,7 @@ public class BlueNear extends LinearOpMode { //Extends LinearOpMode for autonomo
      */
     ElapsedTime runtime;
     ElapsedTime checkTime;
+    ElapsedTime matchTime;
 
     IntegratingGyroscope gyro; //Gyro
     ModernRoboticsI2cGyro modernRoboticsI2cGyro;
@@ -186,10 +187,10 @@ public class BlueNear extends LinearOpMode { //Extends LinearOpMode for autonomo
         double gyro = modernRoboticsI2cGyro.getIntegratedZValue();
         double newPower = 0;
         if(gyro > target) {
-            newPower = currPower -= .015;
+            newPower = currPower -= .02;
         }
         if(gyro < target) {
-            newPower = currPower += .015;
+            newPower = currPower += .02;
         }
         return newPower;
     }
@@ -217,6 +218,7 @@ public class BlueNear extends LinearOpMode { //Extends LinearOpMode for autonomo
         FACE_CRYPTO,
         DROP_GLYPH_2,
         FACE_PILE,
+        BACKUP_ROTATE,
         PRECISE_ROTATE_2,
         RESET,
         STOP
@@ -247,8 +249,8 @@ public class BlueNear extends LinearOpMode { //Extends LinearOpMode for autonomo
 
     public void gripScan() {
 
-        s3.setPosition(0.57); //Sets servo position to 0.36
-        s4.setPosition(0.6); //Sets servo position to 0.58
+        s3.setPosition(0.47); //Sets servo position to 0.36
+        s4.setPosition(0.45); //Sets servo position to 0.58
     }
 
     public double odsCheck(double odsRawLight) {
