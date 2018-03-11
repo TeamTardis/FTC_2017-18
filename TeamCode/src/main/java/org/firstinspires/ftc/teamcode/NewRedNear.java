@@ -50,6 +50,7 @@ public class NewRedNear extends BlueNear {
         s4 = hardwareMap.servo.get("s4"); //Sets s1 i the config
         //s5 = hardwareMap.servo.get("s5"); //Sets s1 i the config
         s6 = hardwareMap.servo.get("s6"); //Sets s1 i the config
+        s7 = hardwareMap.servo.get("s7"); //Sets s1 i the config
 
         m1.setDirection(DcMotor.Direction.REVERSE);
         m3.setDirection(DcMotor.Direction.REVERSE);
@@ -119,7 +120,13 @@ public class NewRedNear extends BlueNear {
         telemetry.addData("Vuforia Initialized. Press play.", ""); //Adds telemetry
         telemetry.update(); //Updates telemetry
 
-        gripOpen();
+        s1.setPosition(0); //Pulls jewel appendage against side of robot
+        s2.setPosition(.3); //Opens Relic Claw
+        s3.setPosition(0.2); //Sets Arm Crunch Servo A
+        s4.setPosition(1); //Sets Arm Crunch Servo B
+//        s5.setPosition(0.5); //Opens 2nd gripper *NOT USED*
+        s6.setPosition(0.5); //Sets arm extension to not move
+        s7.setPosition(0.9);
 
         double rangeCM1;
         double rangePrevCM1 = 0;
@@ -132,22 +139,62 @@ public class NewRedNear extends BlueNear {
         double speed = 0;
         double target = 0;
         int image = 0;
-        int cryptoDistance = 0;
+        int cryptoDistance = -620;
         double glyphODS = 0;
         boolean backupRan = false;
         double rotationMin = 0;
         double rotationPrev = 0;
         double power = 0;
         boolean firstCheck = true;
+        int m2Track = 0;
+
+        double odsLight1 = ods1.getRawLightDetected(); //Initializes rangeCM1 for range reading
+        double odsLight2 = ods2.getRawLightDetected(); //Initializes rangeCM2 for range reading
+        double odsLight3 = ods3.getRawLightDetected(); //Initializes rangeCM3 for range reading
 
         waitForStart(); //Waits for start
 
+        double ods1Curr = 0; //Initializes variable to track current range 1 reading
+        double ods2Curr = 0; //Initializes variable to track current range 2 reading
+        double ods3Curr = 0; //Initializes variable to track current range 4 reading
+
+        double ods1Prev = ods1.getRawLightDetected(); //Defining variable used in low pass filter
+        if (ods1Prev > 1 || ods1Prev < 0) { //Error check
+            ods1Prev = 0;
+        }
+        double ods2Prev = ods2.getRawLightDetected(); //Defining variable used in low pass filter
+        if (ods2Prev > 1 || ods2Prev < 0) { //Error check
+            ods2Prev = 0;
+        }
+        double ods3Prev = ods3.getRawLightDetected(); //Defining variable used in low pass filter
+        if (ods3Prev > 1 || ods3Prev < 0) { //Error check
+            ods3Prev = 0;
+        }
+
         while (opModeIsActive()) {
+
+            ods1Curr = odsCheck(ods1.getLightDetected());
+            ods2Curr = odsCheck(ods2.getLightDetected());
+            ods3Curr = odsCheck(ods3.getLightDetected());
+            odsLight1 = (ods1Curr * 0.2) + (ods1Prev * 0.8); //Updates rangeCM1 variable with low pass filter
+            ods1Prev = odsLight1; //Updates rCM1Prev variable with info current rangeCM1 variable
+
+            odsLight2 = (ods2Curr * 0.2) + (ods2Prev * 0.8); //Updates rangeCM1 variable with low pass filter
+            ods2Prev = odsLight2; //Updates rCM1Prev variable with info current rangeCM1 variable
+
+            odsLight3 = (ods3Curr * 0.2) + (ods3Prev * 0.8); //Updates rangeCM1 variable with low pass filter
+            ods3Prev = odsLight3; //Updates rCM1Prev variable with info current rangeCM1 variable
+
+            odsLight1 = odsCheck(odsLight1);
+            odsLight2 = odsCheck(odsLight2);
+            odsLight3 = odsCheck(odsLight3);
 
             telemetry.addData("Step", CURRENT_STEP);
             telemetry.addData("Gyro", modernRoboticsI2cGyro.getIntegratedZValue());
             telemetry.addData("power", power);
-            telemetry.addData("m2 encoder count", m2.getCurrentPosition());
+            telemetry.addData("Glyph ODS", glyphODS);
+            telemetry.addData("m2 correct check", m2Track);
+            telemetry.addData("ods3", odsLight3);
             telemetry.update();
 
             switch (CURRENT_STEP) { //Beginning of the switch- this sets the current step to whatever CURRENT_STEP is set to
@@ -172,7 +219,7 @@ public class NewRedNear extends BlueNear {
 
                     if (vuMark == RelicRecoveryVuMark.CENTER) { //Vuforia for center pictograph
                         image = 2;
-                        cryptoDistance = -650;
+                        cryptoDistance = -620;
                         changeStep();
                         CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                         break; //Exits switch statement
@@ -188,7 +235,7 @@ public class NewRedNear extends BlueNear {
 
                     if (image == 0 && runtime.seconds() > 3) { //If we don't scan the image
                         image = 2;
-                        cryptoDistance = -650;
+                        cryptoDistance = -620;
                         changeStep();
                         CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                         break;
@@ -198,14 +245,15 @@ public class NewRedNear extends BlueNear {
                 case LOWERSERVO: //Beginning of the case statement
 
                     s1.setPosition(0.55); //Sets servo 1 position to 0.55 (lowers jewel arm)
+                    gripClose();
                     changeStep();
                     CURRENT_STEP = steps.SENSECOLOR; //Changes step to SENSECOLOR
                     break; //Exits switch statement
 
                 case SENSECOLOR: //Beginning of the case statement
 
-                    if (runtime.seconds() > 0.3 && runtime.seconds() < 0.8) { //Activates motor to raise glyph
-                        m7.setPower(-0.7);
+                    if (runtime.seconds() > 0.3 && runtime.seconds() < 1) { //Activates motor to raise glyph
+                        m7.setPower(-0.63);
                     } else {
                         m7.setPower(0);
                     }
@@ -244,16 +292,16 @@ public class NewRedNear extends BlueNear {
 
                 case KNOCKFORWARDS: //Beginning of the case statement
 
-                    if (runtime.seconds() > .9) {
+                    if(runtime.seconds() > .9) {
                         changeStep();
                         CURRENT_STEP = steps.RAISESERVO; //Changes step to KNOCKFORWARDS
                         break; //Exits switch statement
                     }
-                    if (runtime.seconds() < 0.3) {
+                    if(runtime.seconds() < 0.3) {
                         setRotationPower(.15);
                         break;
                     }
-                    if ((runtime.seconds() > 0.5 && runtime.seconds() < 0.9) && modernRoboticsI2cGyro.getIntegratedZValue() > 0) {
+                    if((runtime.seconds() > 0.5 && runtime.seconds() < 0.9) && modernRoboticsI2cGyro.getIntegratedZValue() > 0) {
                         s1.setPosition(0);
                         setRotationPower(-.15);
                         break;
@@ -269,13 +317,13 @@ public class NewRedNear extends BlueNear {
 
                 case OFF_STONE:
 
-                    if(runtime.seconds() > 1.1 && r3.getDistance(DistanceUnit.CM) > 38) {
+                    if(runtime.seconds() > 1 && r3.getDistance(DistanceUnit.CM) > 38) {
                         changeStep();
                         firstCheck = false;
                         CURRENT_STEP = steps.CHECK_ROTATION;
                         break;
                     }
-                    if(runtime.seconds() < 1.1) {
+                    if(runtime.seconds() < 1) {
                         setDrivePower(-.15, 0);
                         break;
                     } else {
@@ -320,13 +368,13 @@ public class NewRedNear extends BlueNear {
 
                 case BACK_STONE:
 
-                    if (runtime.seconds() > 2.5) {
+                    if (runtime.seconds() > 2.3) {
                         cryptoDistance += m2.getCurrentPosition();
                         changeStep();
                         CURRENT_STEP = steps.DRIVE_TO_CRYPTO;
                         break;
                     }
-                    if (runtime.seconds() > .5) {
+                    if (runtime.seconds() > .2) {
                         setDrivePower(.1, 0);
                     }
                     break;
@@ -335,7 +383,7 @@ public class NewRedNear extends BlueNear {
 
                     if (m2.getCurrentPosition() < cryptoDistance + 50 && m2.getCurrentPosition() > cryptoDistance - 50) {
                         changeStep();
-                        CURRENT_STEP = steps.CHECK_DISTANCE;
+                        CURRENT_STEP = steps.ROTATE;
                         break;
                     }
                     //setDriveEncoder(1000);
@@ -349,7 +397,7 @@ public class NewRedNear extends BlueNear {
                         CURRENT_STEP = steps.ROTATE;
                         break;
                     }
-                    if(r3.getDistance(DistanceUnit.CM) < 38) {
+                    if(r3.getDistance(DistanceUnit.CM) < 38 && runtime.seconds() > .5) {
                         setStrafePower(.4, 0);
                     }
                     break;
@@ -357,7 +405,7 @@ public class NewRedNear extends BlueNear {
                 case ROTATE: //Rotation counter clockwise = -, clockwise = +
 
                     target = -90;
-                    if(modernRoboticsI2cGyro.getIntegratedZValue() > target - 10 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 10) {
+                    if(modernRoboticsI2cGyro.getIntegratedZValue() > target - 15 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 15) {
                         changeStep();
                         firstCheck = false;
                         CURRENT_STEP = steps.PRECISE_ROTATE;
@@ -377,10 +425,10 @@ public class NewRedNear extends BlueNear {
                     if(!firstCheck && runtime.seconds() > .2) {
                         rotationPrev = modernRoboticsI2cGyro.getIntegratedZValue();
                         if(modernRoboticsI2cGyro.getIntegratedZValue() > target) {
-                            power = -.1;
+                            power = -.15;
                         }
                         if(modernRoboticsI2cGyro.getIntegratedZValue() < target) {
-                            power = .1;
+                            power = .15;
                         }
                         firstCheck = true;
                         runtime.reset();
@@ -471,6 +519,173 @@ public class NewRedNear extends BlueNear {
                 */
                 case DROP_GLYPH:
 
+                    if (runtime.seconds() > 4) {
+                        changeStep();
+                        CURRENT_STEP = steps.FACE_PILE;
+                        break;
+                    } else {
+                        if (runtime.seconds() < 1.5) {
+                            setDrivePower(.1, 0);
+                            break;
+                        }
+                        if (runtime.seconds() > 1.5 && runtime.seconds() < 2) {
+                            gripOpen();
+                            setDrivePower(-.1, 0);
+                            break;
+                        }
+                        if (runtime.seconds() > 2 && runtime.seconds() < 3) {
+                            setDrivePower(.1, 0);
+                            break;
+                        }
+                        if (runtime.seconds() > 3 && runtime.seconds() < 4) {
+                            setDrivePower(-.1, 0);
+                            break;
+                        }
+                        break;
+                    }
+
+                case FACE_PILE:
+
+                    target = 90; //MUST CHANGE
+                    if(modernRoboticsI2cGyro.getIntegratedZValue() > target - 10 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 10) {
+                        changeStep();
+                        firstCheck = false;
+                        CURRENT_STEP = steps.RESET;
+                        break;
+                    }
+                    setRotationTarget(target);
+                    break;
+
+                case RESET:
+
+                    changeStep();
+                    CURRENT_STEP = steps.FIND_GLYPHS; //Changes step to BACK2
+                    break; //Exits switch statement
+
+                case FIND_GLYPHS:
+
+                    if(odsLight3 > .025) {
+                        changeStep();
+                        glyphODS = odsLight3;
+                        m2Track = m2.getCurrentPosition();
+                        CURRENT_STEP = steps.SCAN_GLYPHS; //Changes step to BACK2
+                        break; //Exits switch statement
+                    }
+                    if(odsLight1 > .025 || odsLight2 > .025) {
+                        changeStep();
+                        m2Track = m2.getCurrentPosition();
+                        CURRENT_STEP = steps.FORWARD_GLYPH; //Changes step to BACK2
+                        break; //Exits switch statement
+                    }
+                    m7.setPower(.3);
+                    gripScan();
+                    setDrivePower(.1, 0);
+                    break;
+
+                case SCAN_GLYPHS:
+
+                    if((odsLight3 == 0 && runtime.seconds() > 1.5) || odsLight1 > .025 || odsLight2 > .025) {
+                        changeStep();
+                        m2Track = Math.abs(m2.getCurrentPosition() - m2Track);
+                        CURRENT_STEP = steps.FORWARD_GLYPH; //Changes step to BACK2
+                        break; //Exits switch statement
+                    }
+                    if(runtime.seconds() > .5 && runtime.seconds() < .6) {
+                        setDrivePower(-.1, 0);
+                    }
+                    if(runtime.seconds() > .7) {
+                        setStrafePower(.45,0);
+                        gripClose();
+                    }
+                    m7.setPower(0);
+                    break;
+
+                case FORWARD_GLYPH:
+
+                    if (runtime.seconds() > 1) {
+                        changeStep();
+                        CURRENT_STEP = steps.GRAB_GLYPH; //Changes step to BACK2
+                        break; //Exits switch statement
+                    }
+                    gripOpen();
+                    setDrivePower(.1, 0);
+                    break;
+
+                case GRAB_GLYPH:
+
+                    if (runtime.seconds() > .6) {
+                        changeStep();
+                        CURRENT_STEP = steps.BACK_GLYPH; //Changes step to BACK2
+                        break; //Exits switch statement
+                    }
+                    gripClose();
+                    break;
+
+                case BACK_GLYPH:
+
+                    if(runtime.seconds() > .8) {
+                        changeStep();
+                        CURRENT_STEP = steps.FACE_CRYPTO; //Changes step to BACK2
+                        break; //Exits switch statement
+                    }
+                    if(runtime.seconds() < .8) {
+                        m7.setPower(-.5);
+                    } else {
+                        m7.setPower(0);
+                    }
+                    setDrivePower(-.2,0);
+                    break;
+
+                case FACE_CRYPTO:
+
+                    target = -90; //MUST CHANGE
+                    if(modernRoboticsI2cGyro.getIntegratedZValue() > target - 30 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 30) {
+                        changeStep();
+                        firstCheck = false;
+                        CURRENT_STEP = steps.PRECISE_ROTATE_2;
+                        break;
+                    }
+                    setRotationTarget(target);
+                    break;
+
+                case PRECISE_ROTATE_2:
+
+                    target = -72;
+                    if (modernRoboticsI2cGyro.getIntegratedZValue() == target) {//modernRoboticsI2cGyro.getIntegratedZValue() < target + 2 && modernRoboticsI2cGyro.getIntegratedZValue() > target - 2) {
+                        changeStep();
+                        CURRENT_STEP = steps.DROP_GLYPH_2;
+                        break;
+                    }
+                    if(!firstCheck && runtime.seconds() > .2) {
+                        rotationPrev = modernRoboticsI2cGyro.getIntegratedZValue();
+                        if(modernRoboticsI2cGyro.getIntegratedZValue() > target) {
+                            power = -.12;
+                        }
+                        if(modernRoboticsI2cGyro.getIntegratedZValue() < target) {
+                            power = .12;
+                        }
+                        firstCheck = true;
+                        runtime.reset();
+                    } else {
+                        if(runtime.seconds() > .5) {
+                            if(power > 0 && modernRoboticsI2cGyro.getIntegratedZValue() > target) {
+                                power = -.12;
+                            }
+                            if(power < 0 && modernRoboticsI2cGyro.getIntegratedZValue() < target) {
+                                power = .12;
+                            }
+                            if(modernRoboticsI2cGyro.getIntegratedZValue() == rotationPrev) {
+                                power = setRotationPercise(target, power);
+                            }
+                            rotationPrev = modernRoboticsI2cGyro.getIntegratedZValue();
+                            runtime.reset();
+                        }
+                    }
+                    setRotationPower(power);
+                    break;
+
+                case DROP_GLYPH_2:
+
                     if (runtime.seconds() > 3.5) {
                         changeStep();
                         CURRENT_STEP = steps.STOP;
@@ -496,65 +711,9 @@ public class NewRedNear extends BlueNear {
                         break;
                     }
 
-                case RESET:
-
-                    changeStep();
-                    CURRENT_STEP = steps.FIND_GLYPHS; //Changes step to BACK2
-                    break; //Exits switch statement
-
-                case FIND_GLYPHS:
-
-                    if (ods3.getLightDetected() > .005 && runtime.seconds() > .5) {
-                        changeStep();
-                        glyphODS = ods3.getLightDetected();
-                        CURRENT_STEP = steps.SCAN_GLYPHS; //Changes step to BACK2
-                        break; //Exits switch statement
-                    }
-                    s3.setPosition(0.7); //Closes arm crunch
-                    s4.setPosition(0.5);
-                    setDrivePower(.1, 0);
-                    break;
-
-                case SCAN_GLYPHS:
-
-                    if (ods3.getLightDetected() < glyphODS - .001 && runtime.seconds() > .4) {
-                        changeStep();
-                        CURRENT_STEP = steps.FORWARD_GLYPH; //Changes step to BACK2
-                        break; //Exits switch statement
-                    }
-                    setStrafePower(.3, 0);
-                    break;
-
-                case FORWARD_GLYPH:
-
-                    if (runtime.seconds() > 1) {
-                        changeStep();
-                        CURRENT_STEP = steps.GRAB_GLYPH; //Changes step to BACK2
-                        break; //Exits switch statement
-                    }
-                    gripOpen();
-                    setDrivePower(.3, 0);
-                    break;
-
-                case GRAB_GLYPH:
-
-                    if (runtime.seconds() > .6) {
-                        changeStep();
-                        CURRENT_STEP = steps.STOP; //Changes step to BACK2
-                        break; //Exits switch statement
-                    }
-                    if (runtime.seconds() < .2) {
-                        gripClose();
-                        break;
-                    } else {
-                        //m7.setPower(-.5);
-                    }
-                    break;
-
                 case STOP: //Beginning of the case statement
 
-                    setDrivePower(0, 0); //Stops robot
-                    m7.setPower(0);
+                    changeStep();
                     break; //Exits switch statement
 
             }

@@ -83,6 +83,8 @@ public class BlueNear extends LinearOpMode { //Extends LinearOpMode for autonomo
      */
     Servo s6; //Arm extension
 
+    Servo s7;
+
     /**
      * Time Variable, use runtime.seconds()
      */
@@ -211,6 +213,11 @@ public class BlueNear extends LinearOpMode { //Extends LinearOpMode for autonomo
         SCAN_GLYPHS,
         FORWARD_GLYPH,
         GRAB_GLYPH,
+        BACK_GLYPH,
+        FACE_CRYPTO,
+        DROP_GLYPH_2,
+        FACE_PILE,
+        PRECISE_ROTATE_2,
         RESET,
         STOP
     }
@@ -220,19 +227,35 @@ public class BlueNear extends LinearOpMode { //Extends LinearOpMode for autonomo
     public void changeStep() {
 
         setDrivePower(0,0);
+        m5.setPower(0);
+        m6.setPower(0);
+        m7.setPower(0);
         runtime.reset();
     }
 
     public void gripClose() {
 
-        s3.setPosition(0.85); //Closes arm crunch
-        s4.setPosition(0.45);
+        s3.setPosition(0.76); //Sets servo position to 0.36
+        s4.setPosition(0.45); //Sets servo position to 0.58
     }
 
     public void gripOpen() {
 
-        s3.setPosition(0.35); //Sets Arm Crunch Servo A
-        s4.setPosition(1); //Sets Arm Crunch Servo B
+        s3.setPosition(0.47); //Sets servo position to 1
+        s4.setPosition(0.75); //Sets servo position to 1
+    }
+
+    public void gripScan() {
+
+        s3.setPosition(0.57); //Sets servo position to 0.36
+        s4.setPosition(0.6); //Sets servo position to 0.58
+    }
+
+    public double odsCheck(double odsRawLight) {
+        if(odsRawLight < .02) {
+            odsRawLight = 0;
+        }
+        return odsRawLight;
     }
 
     @Override
