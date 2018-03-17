@@ -29,8 +29,8 @@ import static org.firstinspires.ftc.teamcode.RangeTestBedSteps.steps.GRAB;
 import static org.firstinspires.ftc.teamcode.RangeTestBedSteps.steps.RUNTIME_RESET;
 //Imports
 
-@Autonomous(name = "NewBlueNear", group = "Autonomous")
-public class NewBlueNear extends BlueNear {
+@Autonomous(name = "NEAR_blue", group = "Autonomous")
+public class NewBlueNear extends TardisAutonomous {
 
 @Override
 public void runOpMode() { //Start of the initiation for autonomous
@@ -49,12 +49,14 @@ public void runOpMode() { //Start of the initiation for autonomous
     s4 = hardwareMap.servo.get("s4"); //Sets s1 i the config
     //s5 = hardwareMap.servo.get("s5"); //Sets s1 i the config
     s6 = hardwareMap.servo.get("s6"); //Sets s1 i the config
+    s7 = hardwareMap.servo.get("s7"); //Sets s1 i the config
 
     m1.setDirection(DcMotor.Direction.REVERSE);
     m3.setDirection(DcMotor.Direction.REVERSE);
 
     runtime = new ElapsedTime(); //Creates runtime variable for using time
     checkTime = new ElapsedTime(); //Creates runtime variable for using time
+    matchTime = new ElapsedTime(); //Creates runtime variable for using time
 
     r1reader = hardwareMap.i2cDeviceSynch.get("r1"); //Port 1 (Right side)
     r1 = new ModernRoboticsI2cRangeSensor(r1reader);
@@ -118,7 +120,12 @@ public void runOpMode() { //Start of the initiation for autonomous
     telemetry.addData("Vuforia Initialized. Press play.", ""); //Adds telemetry
     telemetry.update(); //Updates telemetry
 
-    gripOpen();
+    s1.setPosition(0); //Pulls jewel appendage against side of robot
+    s2.setPosition(0.3); //Opens Relic Claw
+    s3.setPosition(0.2); //Sets Arm Crunch Servo A
+    s4.setPosition(1); //Sets Arm Crunch Servo B
+    s6.setPosition(0.5); //Sets arm extension to not move
+    s7.setPosition(0.9); //Sets back up relic gripper out of the way
 
     double rangeCM1;
     double rangePrevCM1 = 0;
@@ -131,17 +138,64 @@ public void runOpMode() { //Start of the initiation for autonomous
     double speed = 0;
     double target = 0;
     int image = 0;
-    int cryptoDistance = 0;
+    int cryptoDistance = -620;
     double glyphODS = 0;
     boolean backupRan = false;
+    double rotationMin = 0;
+    double rotationPrev = 0;
+    double power = 0;
+    boolean firstCheck = true;
+    int m2Track = 0;
+
+    double odsLight1 = ods1.getRawLightDetected(); //Initializes rangeCM1 for range reading
+    double odsLight2 = ods2.getRawLightDetected(); //Initializes rangeCM2 for range reading
+    double odsLight3 = ods3.getRawLightDetected(); //Initializes rangeCM3 for range reading
+
+    waitForStart(); //Waits for start
+
+    double ods1Curr = 0; //Initializes variable to track current range 1 reading
+    double ods2Curr = 0; //Initializes variable to track current range 2 reading
+    double ods3Curr = 0; //Initializes variable to track current range 4 reading
+
+    double ods1Prev = ods1.getRawLightDetected(); //Defining variable used in low pass filter
+    if (ods1Prev > 1 || ods1Prev < 0) { //Error check
+        ods1Prev = 0;
+    }
+    double ods2Prev = ods2.getRawLightDetected(); //Defining variable used in low pass filter
+    if (ods2Prev > 1 || ods2Prev < 0) { //Error check
+        ods2Prev = 0;
+    }
+    double ods3Prev = ods3.getRawLightDetected(); //Defining variable used in low pass filter
+    if (ods3Prev > 1 || ods3Prev < 0) { //Error check
+        ods3Prev = 0;
+    }
 
     waitForStart(); //Waits for start
 
     while(opModeIsActive()) {
 
-        telemetry.addData("m2 encoder", m2.getCurrentPosition());
-        telemetry.addData("m7 encoder", m7.getCurrentPosition());
-        telemetry.addData("ods 3", ods3.getLightDetected());
+        ods1Curr = odsCheck(ods1.getLightDetected());
+        ods2Curr = odsCheck(ods2.getLightDetected());
+        ods3Curr = odsCheck(ods3.getLightDetected());
+        odsLight1 = (ods1Curr * 0.2) + (ods1Prev * 0.8); //Updates rangeCM1 variable with low pass filter
+        ods1Prev = odsLight1; //Updates rCM1Prev variable with info current rangeCM1 variable
+
+        odsLight2 = (ods2Curr * 0.2) + (ods2Prev * 0.8); //Updates rangeCM1 variable with low pass filter
+        ods2Prev = odsLight2; //Updates rCM1Prev variable with info current rangeCM1 variable
+
+        odsLight3 = (ods3Curr * 0.2) + (ods3Prev * 0.8); //Updates rangeCM1 variable with low pass filter
+        ods3Prev = odsLight3; //Updates rCM1Prev variable with info current rangeCM1 variable
+
+        odsLight1 = odsCheck(odsLight1);
+        odsLight2 = odsCheck(odsLight2);
+        odsLight3 = odsCheck(odsLight3);
+
+        telemetry.addData("Step", CURRENT_STEP);
+        telemetry.addData("Gyro", modernRoboticsI2cGyro.getIntegratedZValue());
+        telemetry.addData("power", power);
+        telemetry.addData("Glyph ODS", glyphODS);
+        telemetry.addData("m2 correct check", m2Track);
+        telemetry.addData("ods3", odsLight3);
         telemetry.update();
 
         switch (CURRENT_STEP) { //Beginning of the switch- this sets the current step to whatever CURRENT_STEP is set to
@@ -150,7 +204,7 @@ public void runOpMode() { //Start of the initiation for autonomous
             //START OF MAIN STEPS//
             ///////////////////////
 
-            case SCANIMAGE: //Beginning of case statement SCANIMAGE
+            case SCANIMAGE: //Scans the image (pictograph). If none is seen, it defaults to the center column
 
                 RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate); //Image scanning
 
@@ -166,7 +220,7 @@ public void runOpMode() { //Start of the initiation for autonomous
 
                 if (vuMark == RelicRecoveryVuMark.CENTER) { //Vuforia for center pictograph
                     image = 2;
-                    cryptoDistance = 1050;
+                    cryptoDistance = 1100;
                     changeStep();
                     CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                     break; //Exits switch statement
@@ -182,21 +236,21 @@ public void runOpMode() { //Start of the initiation for autonomous
 
                 if (image == 0 && runtime.seconds() > 3) { //If we don't scan the image
                     image = 2;
-                    cryptoDistance = 1050;
+                    cryptoDistance = 1100;
                     changeStep();
                     CURRENT_STEP = steps.LOWERSERVO; //Changes step to LOWERSERVO
                     break;
                 }
                 break; //Exits switch statement
 
-            case LOWERSERVO: //Beginning of the case statement
+            case LOWERSERVO: //Lowers the jewel arm with the color sensor attached
 
                 s1.setPosition(0.55); //Sets servo 1 position to 0.55 (lowers jewel arm)
                 changeStep();
                 CURRENT_STEP = steps.SENSECOLOR; //Changes step to SENSECOLOR
                 break; //Exits switch statement
 
-            case SENSECOLOR: //Beginning of the case statement
+            case SENSECOLOR: //Uses the color sensor to determine which way to move
 
                 if (runtime.seconds() > 0.3 && runtime.seconds() < 0.8) { //Activates motor to raise glyph
                     m7.setPower(-0.7);
@@ -206,18 +260,21 @@ public void runOpMode() { //Start of the initiation for autonomous
                 if (c1.blue() > c1.red() && runtime.seconds() > 1) {
                     changeStep();
                     CURRENT_STEP = steps.KNOCKFORWARDS; //Changes step to KNOCKFORWARDS
+                    matchTime.reset();
                     break; //Exits switch statement
                 }
 
                 if (c1.red() > c1.blue() && runtime.seconds() > 1) {
                     changeStep();
                     CURRENT_STEP = steps.KNOCKBACK; //Changes step to KNOCKBACK
+                    matchTime.reset();
                     break; //Exits switch statement
                 }
 
                 if (c1.red() == c1.blue() && c1.red() == 0 && runtime.seconds() > 1) {
                     changeStep();
                     CURRENT_STEP = steps.RAISESERVO; //Changes step to RAISESERVO
+                    matchTime.reset();
                     break;
                 }
 
@@ -226,7 +283,7 @@ public void runOpMode() { //Start of the initiation for autonomous
                 }
                 break; //Exits switch statement
 
-            case KNOCKBACK: //Beginning of the case statement
+            case KNOCKBACK: //Rotates robot backward to knock jewel
 
                 if(runtime.seconds() > 1){
                     changeStep();
@@ -244,68 +301,77 @@ public void runOpMode() { //Start of the initiation for autonomous
                 }
                 break;
 
-            case KNOCKFORWARDS: //Beginning of the case statement
+            case KNOCKFORWARDS: //Drives robot forward to knock jewel
 
-                if(runtime.seconds() > 1.3){
+                if (runtime.seconds() > .3) {
                     changeStep();
                     CURRENT_STEP = steps.RAISESERVO; //Changes step to KNOCKFORWARDS
                     break; //Exits switch statement
                 }
-                if(runtime.seconds() < 0.3) {
-                    setRotationPower(.15);
-                    break;
-                }
-                if((runtime.seconds() > 0.5 && runtime.seconds() < 0.9) && modernRoboticsI2cGyro.getIntegratedZValue() > 0) {
-                    s1.setPosition(0);
-                    setRotationPower(-.15);
-                    break;
-                }
-                if(runtime.seconds() > 0.9 && runtime.seconds() < 1.2) {
-                    s1.setPosition(0);
-                    setDrivePower(.1,0);
-                    break;
-                }
+                setDrivePower(.2, 0);
                 break;
 
-            case RAISESERVO:
+            case RAISESERVO: // Raises the jewel servo
 
                 s1.setPosition(0); //Sets servo 1 position to 0 (raises jewel arm)
                 changeStep();
                 CURRENT_STEP = steps.OFF_STONE; //Changes step to DRIVETOCRYPTOBOX
                 break; //Exits switch statement
 
-            case OFF_STONE:
+            case OFF_STONE: //Drives the robot off the balancing stone
 
-                if(runtime.seconds() > 1.1) {
-                    if(r3.getDistance(DistanceUnit.CM) > 30) {
-                        changeStep();
-                        CURRENT_STEP = steps.CHECK_ROTATION;
-                        break;
-                    }
-                    setStrafePower(.5,0);
-                } else {
-                    setDrivePower(.2,0);
+                if(runtime.seconds() > 1 && r3.getDistance(DistanceUnit.CM) > 38) {
+                    changeStep();
+                    firstCheck = false;
+                    checkTime.reset();
+                    CURRENT_STEP = steps.CHECK_ROTATION;
+                    break;
                 }
-                break;
+                if(runtime.seconds() < 1) {
+                    setDrivePower(.12, 0);
+                    break;
+                } else {
+                    setStrafePower(.4, 0);
+                    break;
+                }
 
-            case CHECK_ROTATION:
+            case CHECK_ROTATION: //Checks using gyro that the robot is correctly aligned to back up
 
                 target = 0;
-                if (modernRoboticsI2cGyro.getIntegratedZValue() < target + 2 && modernRoboticsI2cGyro.getIntegratedZValue() > target - 2) {
+                if ((modernRoboticsI2cGyro.getIntegratedZValue() > target - 2 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 2) || checkTime.seconds() > 2) {//modernRoboticsI2cGyro.getIntegratedZValue() < target + 2 && modernRoboticsI2cGyro.getIntegratedZValue() > target - 2) {
                     changeStep();
                     CURRENT_STEP = steps.BACK_STONE;
                     break;
-                } else {
+                }
+                if(!firstCheck && runtime.seconds() > .2) {
+                    rotationPrev = modernRoboticsI2cGyro.getIntegratedZValue();
+                    if(modernRoboticsI2cGyro.getIntegratedZValue() > target) {
+                        power = -.12;
+                    }
                     if(modernRoboticsI2cGyro.getIntegratedZValue() < target) {
-                        setRotationPower(.12);
-                        break;
-                    } else {
-                        setRotationPower(-.12);
-                        break;
+                        power = .12;
+                    }
+                    firstCheck = true;
+                    runtime.reset();
+                } else {
+                    if(runtime.seconds() > .5) {
+                        if(power > 0 && modernRoboticsI2cGyro.getIntegratedZValue() > target) {
+                            power = -.12;
+                        }
+                        if(power < 0 && modernRoboticsI2cGyro.getIntegratedZValue() < target) {
+                            power = .12;
+                        }
+                        if(modernRoboticsI2cGyro.getIntegratedZValue() == rotationPrev) {
+                            power = setRotationPrecise(target, power);
+                        }
+                        rotationPrev = modernRoboticsI2cGyro.getIntegratedZValue();
+                        runtime.reset();
                     }
                 }
+                setRotationPower(power);
+                break;
 
-            case BACK_STONE:
+            case BACK_STONE: //Backs into balancing stone to use motor encoder ticks to drive to the correct column
 
                 if(runtime.seconds() > 2.2) {
                     cryptoDistance += m2.getCurrentPosition();
@@ -318,7 +384,7 @@ public void runOpMode() { //Start of the initiation for autonomous
                 }
                 break;
 
-            case DRIVE_TO_CRYPTO:
+            case DRIVE_TO_CRYPTO: //Uses varibles to drive the robot using encoders to the correct column
 
                 if(m2.getCurrentPosition() > cryptoDistance - 50 && m2.getCurrentPosition() < cryptoDistance + 50) {
                     changeStep();
@@ -329,43 +395,98 @@ public void runOpMode() { //Start of the initiation for autonomous
                 setDrivePower(.1, 0);
                 break;
 
-            case ROTATE:
+            case ROTATE: //First rotation step to get the robot near the correct oritation facing the cryptobox
 
                 target = -90;
-                if(modernRoboticsI2cGyro.getIntegratedZValue() > target - 3 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 3) {
+                if(modernRoboticsI2cGyro.getIntegratedZValue() > target - 20 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 20) {
                     changeStep();
-                    CURRENT_STEP = steps.DROP_GLYPH;
+                    firstCheck = false;
+                    checkTime.reset();
+                    CURRENT_STEP = steps.PRECISE_ROTATE;
                     break;
                 }
                 setRotationTarget(target);
                 break;
 
-            case DROP_GLYPH:
+            case PRECISE_ROTATE: //More persise rotation step using low power to get exact rotation position
 
-                if(runtime.seconds() > 3.5) {
+                target = -90;
+                if (modernRoboticsI2cGyro.getIntegratedZValue() == target || checkTime.seconds() > 4) {//modernRoboticsI2cGyro.getIntegratedZValue() < target + 2 && modernRoboticsI2cGyro.getIntegratedZValue() > target - 2) {
                     changeStep();
-                    CURRENT_STEP = steps.STOP;
+                    CURRENT_STEP = steps.DROP_GLYPH;
+                    break;
+                }
+                if(!firstCheck && runtime.seconds() > .2) {
+                    rotationPrev = modernRoboticsI2cGyro.getIntegratedZValue();
+                    if(modernRoboticsI2cGyro.getIntegratedZValue() > target) {
+                        power = -.12;
+                    }
+                    if(modernRoboticsI2cGyro.getIntegratedZValue() < target) {
+                        power = .12;
+                    }
+                    firstCheck = true;
+                    runtime.reset();
+                } else {
+                    if(runtime.seconds() > .5) {
+                        if(power > 0 && modernRoboticsI2cGyro.getIntegratedZValue() > target) {
+                            power = -.12;
+                        }
+                        if(power < 0 && modernRoboticsI2cGyro.getIntegratedZValue() < target) {
+                            power = .12;
+                        }
+                        if(modernRoboticsI2cGyro.getIntegratedZValue() == rotationPrev) {
+                            power = setRotationPrecise(target, power);
+                        }
+                        rotationPrev = modernRoboticsI2cGyro.getIntegratedZValue();
+                        runtime.reset();
+                    }
+                }
+                setRotationPower(power);
+                break;
+
+            case DROP_GLYPH: //Drives forward to drop glyph
+
+                if (runtime.seconds() > 4) {
+                    changeStep();
+                    CURRENT_STEP = steps.FACE_PILE;
                     break;
                 } else {
-                    if(runtime.seconds() < 1) {
+                    if (runtime.seconds() < 1.5) {
                         setDrivePower(.1, 0);
                         break;
                     }
-                    if(runtime.seconds() > 1 && runtime.seconds() < 1.5) {
+                    if (runtime.seconds() > 1.5 && runtime.seconds() < 2) {
                         gripOpen();
                         setDrivePower(-.1, 0);
                         break;
                     }
-                    if(runtime.seconds() > 1.5 && runtime.seconds() < 2.5) {
+                    if (runtime.seconds() > 2 && runtime.seconds() < 3) {
                         setDrivePower(.1, 0);
                         break;
                     }
-                    if(runtime.seconds() > 2.5 && runtime.seconds() < 3.5) {
+                    if (runtime.seconds() > 3 && runtime.seconds() < 4) {
                         setDrivePower(-.1, 0);
                         break;
                     }
                     break;
                 }
+
+            case FACE_PILE: //Rotates 180 degrees to face pile
+
+                target = 90;
+                if(modernRoboticsI2cGyro.getIntegratedZValue() > target - 20 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 20) {
+                    changeStep();
+                    firstCheck = false;
+                    checkTime.reset();
+                    CURRENT_STEP = steps.RESET;
+                    if(matchTime.seconds() > 20) {
+                        CURRENT_STEP = steps.BACKUP_ROTATE;
+                        break;
+                    }
+                    break;
+                }
+                setRotationTarget(target);
+                break;
 
             case RESET:
 
@@ -375,56 +496,168 @@ public void runOpMode() { //Start of the initiation for autonomous
 
             case FIND_GLYPHS:
 
-                if(ods3.getLightDetected() > .005 && runtime.seconds() > .5) {
+                if(odsLight3 > .025 || (odsLight1 > .05 && odsLight2 > .05) || runtime.seconds() > 5) {
                     changeStep();
-                    glyphODS = ods3.getLightDetected();
+                    glyphODS = odsLight3;
+                    m2Track = m2.getCurrentPosition();
                     CURRENT_STEP = steps.SCAN_GLYPHS; //Changes step to BACK2
                     break; //Exits switch statement
                 }
-                s3.setPosition(0.7); //Closes arm crunch
-                s4.setPosition(0.5);
+                m7.setPower(.5);
+                gripScan();
                 setDrivePower(.1,0);
                 break;
 
             case SCAN_GLYPHS:
 
-                if(ods3.getLightDetected() < glyphODS - .001 && runtime.seconds() > .4) {
+                if(((odsLight3 == 0) || (odsLight1 > .05 && odsLight2 > .05)) && runtime.seconds() > .6) {
                     changeStep();
+                    m2Track = Math.abs(m2.getCurrentPosition() - m2Track);
                     CURRENT_STEP = steps.FORWARD_GLYPH; //Changes step to BACK2
                     break; //Exits switch statement
                 }
-                setStrafePower(.3,0);
+                if(runtime.seconds() < .2) {
+                    setDrivePower(-.08,0);
+                } else {
+                    setStrafePower(.4,0);
+                }
+                gripScan();
+                m7.setPower(0);
                 break;
 
             case FORWARD_GLYPH:
 
-                if(runtime.seconds() > 1) {
+                if (runtime.seconds() > .5) {
                     changeStep();
                     CURRENT_STEP = steps.GRAB_GLYPH; //Changes step to BACK2
                     break; //Exits switch statement
                 }
                 gripOpen();
-                setDrivePower(.3,0);
+                setDrivePower(.2,0);
                 break;
 
             case GRAB_GLYPH:
 
-                if(runtime.seconds() > .6) {
+                if (runtime.seconds() > .6) {
                     changeStep();
-                    CURRENT_STEP = steps.STOP; //Changes step to BACK2
+                    CURRENT_STEP = steps.BACK_GLYPH; //Changes step to BACK2
                     break; //Exits switch statement
                 }
-                if(runtime.seconds() < .2) {
-                    gripClose();
+                gripClose();
+                break;
+
+            case BACK_GLYPH:
+
+                if(runtime.seconds() > 1) {
+                    changeStep();
+                    CURRENT_STEP = steps.FACE_CRYPTO; //Changes step to BACK2
+                    break; //Exits switch statement
+                }
+                if(runtime.seconds() < .6) {
+                    m7.setPower(-.7);
+                } else {
+                    m7.setPower(0);
+                }
+                setDrivePower(-.2,0);
+                break;
+
+            case FACE_CRYPTO:
+
+                target = -90; //MUST CHANGE
+                if(image == 3) {
+                    target = 270;
+                }
+                if(modernRoboticsI2cGyro.getIntegratedZValue() > target - 50 && modernRoboticsI2cGyro.getIntegratedZValue() < target + 50) {
+                    changeStep();
+                    firstCheck = false;
+                    CURRENT_STEP = steps.DROP_GLYPH_2;
+                    break;
+                }
+                setRotationTarget(target);
+                break;
+
+            case DROP_GLYPH_2:
+
+                if (runtime.seconds() > 3.5) {
+                    changeStep();
+                    CURRENT_STEP = steps.STOP;
                     break;
                 } else {
-                    //m7.setPower(-.5);
+                    if (runtime.seconds() < 1.5 && matchTime.seconds() < 28) {
+                        if(image != 3) {
+                            m2.setPower(.7);
+                            m3.setPower(.7);
+                        } else {
+                            m1.setPower(.7);
+                            m4.setPower(.7);
+                        }
+                        break;
+                    }
+                    if (runtime.seconds() > 1.5 && runtime.seconds() < 2 && matchTime.seconds() < 28) {
+                        gripOpen();
+                        if(image != 3) {
+                            m2.setPower(-.4);
+                            m3.setPower(-.4);
+                        } else {
+                            m1.setPower(-.4);
+                            m4.setPower(-.4);
+                        }
+                    }
+                    if (runtime.seconds() > 2 && runtime.seconds() < 3 && matchTime.seconds() < 28) {
+                        if(image != 3) {
+                            m2.setPower(.7);
+                            m3.setPower(.7);
+                        } else {
+                            m1.setPower(.7);
+                            m4.setPower(.7);
+                        }
+                    }
+                    if (runtime.seconds() > 3 && runtime.seconds() < 3.5 && matchTime.seconds() < 28) {
+                        if(image != 3) {
+                            m2.setPower(-.4);
+                            m3.setPower(-.4);
+                        } else {
+                            m1.setPower(-.4);
+                            m4.setPower(-.4);
+                        }
+                        break;
+                    }
+                    if(matchTime.seconds() > 29) {
+                        setDrivePower(-.08,0);
+                    }
+                    break;
                 }
+
+            case BACKUP_ROTATE:
+
+                if(runtime.seconds() > 1.7) {
+                    changeStep();
+                    CURRENT_STEP = steps.STOP;
+                    break;
+                }
+                if(runtime.seconds() < 1) {
+                    setDrivePower(-.2, 0);
+                    m7.setPower(.4);
+                }
+                if(runtime.seconds() > 1 && runtime.seconds() < 1.5) {
+                    setDrivePower(.1, 0);
+                    m7.setPower(.4);
+                }
+                break;
+
+            case EMRG_BACKUP:
+
+                if(runtime.seconds() > .2) {
+                    changeStep();
+                    CURRENT_STEP = steps.STOP;
+                    break;
+                }
+                setDrivePower(-.2,0);
                 break;
 
             case STOP: //Beginning of the case statement
 
-                setDrivePower(0, 0); //Stops robot
+                changeStep();
                 m7.setPower(0);
                 break; //Exits switch statement
 
